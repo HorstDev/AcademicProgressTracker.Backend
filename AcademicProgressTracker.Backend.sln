@@ -5,6 +5,18 @@ VisualStudioVersion = 17.8.34322.80
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcademicProgressTracker.WebApi", "AcademicProgressTracker.WebApi\AcademicProgressTracker.WebApi.csproj", "{48465C97-3AF2-40AB-A9BF-5B72FC4F968C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{3820FA8C-BD13-456F-A409-F78E3629DB62}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{B2361ADB-A71C-48F6-AC9D-496FE13870E3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentation", "Presentation", "{CA55FDEF-9AA6-4D64-A1D4-C689DA7FD124}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcademicProgressTracker.Application", "AcademicProgressTracker.Application\AcademicProgressTracker.Application.csproj", "{07D4627B-0A10-413D-8B59-DCB76255DB59}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcademicProgressTracker.Domain", "AcademicProgressTracker.Domain\AcademicProgressTracker.Domain.csproj", "{DE1C344D-20AC-496E-B046-1641CE73CBC3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AcademicProgressTracker.Persistence", "AcademicProgressTracker.Persistence\AcademicProgressTracker.Persistence.csproj", "{D14FEF5A-01C4-47B7-8BA1-0A4E45D9386A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,9 +27,27 @@ Global
 		{48465C97-3AF2-40AB-A9BF-5B72FC4F968C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48465C97-3AF2-40AB-A9BF-5B72FC4F968C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48465C97-3AF2-40AB-A9BF-5B72FC4F968C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07D4627B-0A10-413D-8B59-DCB76255DB59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07D4627B-0A10-413D-8B59-DCB76255DB59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07D4627B-0A10-413D-8B59-DCB76255DB59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07D4627B-0A10-413D-8B59-DCB76255DB59}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE1C344D-20AC-496E-B046-1641CE73CBC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE1C344D-20AC-496E-B046-1641CE73CBC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE1C344D-20AC-496E-B046-1641CE73CBC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE1C344D-20AC-496E-B046-1641CE73CBC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D14FEF5A-01C4-47B7-8BA1-0A4E45D9386A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D14FEF5A-01C4-47B7-8BA1-0A4E45D9386A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D14FEF5A-01C4-47B7-8BA1-0A4E45D9386A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D14FEF5A-01C4-47B7-8BA1-0A4E45D9386A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{48465C97-3AF2-40AB-A9BF-5B72FC4F968C} = {CA55FDEF-9AA6-4D64-A1D4-C689DA7FD124}
+		{07D4627B-0A10-413D-8B59-DCB76255DB59} = {3820FA8C-BD13-456F-A409-F78E3629DB62}
+		{DE1C344D-20AC-496E-B046-1641CE73CBC3} = {3820FA8C-BD13-456F-A409-F78E3629DB62}
+		{D14FEF5A-01C4-47B7-8BA1-0A4E45D9386A} = {B2361ADB-A71C-48F6-AC9D-496FE13870E3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9C45A0F6-6118-49FF-9611-7E5979C05ED2}
