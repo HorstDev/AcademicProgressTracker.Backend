@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace AcademicProgressTracker.Application.Auth
 {
-    public class PasswordHasher : IHasher
+    public class PasswordHasher : IPasswordHasher
     {
         public void CreateHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {

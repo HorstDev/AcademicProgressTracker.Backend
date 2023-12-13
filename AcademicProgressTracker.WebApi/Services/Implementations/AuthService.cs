@@ -1,4 +1,5 @@
 ﻿using AcademicProgressTracker.Application.Auth;
+using AcademicProgressTracker.Application.Common.Interfaces;
 using AcademicProgressTracker.Domain;
 using AcademicProgressTracker.Persistence.Repositories.Interfaces;
 using AcademicProgressTracker.WebApi.Models;
@@ -12,9 +13,9 @@ namespace AcademicProgressTracker.WebApi.Services.Implementations
         private readonly IConfiguration _configuration;
         private readonly IUserRepository _userRepository;
         private readonly IRoleRepository _roleRepository;
-        private PasswordHasher _passwordHasher;
+        private IPasswordHasher _passwordHasher;
 
-        public AuthService(IConfiguration configuration, IUserRepository userRepository, IRoleRepository roleRepository, PasswordHasher passwordHasher)
+        public AuthService(IConfiguration configuration, IUserRepository userRepository, IRoleRepository roleRepository, IPasswordHasher passwordHasher)
         {
             _configuration = configuration;
             _userRepository = userRepository;

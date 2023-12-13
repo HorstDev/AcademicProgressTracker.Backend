@@ -13,6 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using AcademicProgressTracker.Application.Auth;
 using AcademicProgressTracker.WebApi.Middleware;
+using AcademicProgressTracker.Application.Common.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +29,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 // Репозитории
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-builder.Services.AddScoped<PasswordHasher>();
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 
 // Ignore cycles
 builder.Services.AddControllers().AddJsonOptions(options =>
