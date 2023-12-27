@@ -25,7 +25,6 @@ namespace AcademicProgressTracker.WebApi.Middleware
         private Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             var code = HttpStatusCode.InternalServerError;
-            var result = string.Empty;
 
             switch (exception)
             {
@@ -39,7 +38,7 @@ namespace AcademicProgressTracker.WebApi.Middleware
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)code;
-            result = JsonSerializer.Serialize(new { error = exception.Message });
+            var result = JsonSerializer.Serialize(new { error = exception.Message });
 
             return context.Response.WriteAsync(result);
         }

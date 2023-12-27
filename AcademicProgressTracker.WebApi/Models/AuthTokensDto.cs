@@ -2,12 +2,12 @@
 
 namespace AcademicProgressTracker.WebApi.Models
 {
-    public class AuthTokensDTO
+    public class AuthTokensDto
     {
         public AccessToken AccessToken { get; set; }
         public RefreshToken RefreshToken { get; set; }
 
-        public AuthTokensDTO(AccessToken accessToken, RefreshToken refreshToken)
+        public AuthTokensDto(AccessToken accessToken, RefreshToken refreshToken)
         {
             AccessToken = accessToken;
             RefreshToken = refreshToken;

@@ -13,9 +13,11 @@ namespace AcademicProgressTracker.WebApi.Services.Implementations
         private readonly IConfiguration _configuration;
         private readonly IUserRepository _userRepository;
         private readonly IRoleRepository _roleRepository;
-        private IPasswordHasher _passwordHasher;
+        private readonly IPasswordHasher _passwordHasher;
 
-        public AuthService(IConfiguration configuration, IUserRepository userRepository, IRoleRepository roleRepository, IPasswordHasher passwordHasher)
+        public AuthService(
+            IConfiguration configuration, IUserRepository userRepository, 
+            IRoleRepository roleRepository, IPasswordHasher passwordHasher)
         {
             _configuration = configuration;
             _userRepository = userRepository;
@@ -23,7 +25,7 @@ namespace AcademicProgressTracker.WebApi.Services.Implementations
             _passwordHasher = passwordHasher;
         }
 
-        public async Task<User> Register(UserDTO request)
+        public async Task<User> Register(UserDto request)
         {
             try
             {
@@ -33,14 +35,12 @@ namespace AcademicProgressTracker.WebApi.Services.Implementations
                     _passwordHasher.CreateHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
                     user = new User
                     {
-                        Id = Guid.NewGuid(),
                         Email = request.Email,
                         PasswordHash = passwordHash,
                         PasswordSalt = passwordSalt
                     };
                     Role userRole = (await _roleRepository.GetByName("Student"))!;
-                    if (userRole != null)
-                        user.Role = userRole;
+                    user.Role = userRole;
                     await _userRepository.Create(user);
 
                     return user;
@@ -57,7 +57,7 @@ namespace AcademicProgressTracker.WebApi.Services.Implementations
             }
         }
 
-        public async Task<AuthTokensDTO> Login(UserDTO request)
+        public async Task<AuthTokensDto> Login(UserDto request)
         {
             try
             {
@@ -72,7 +72,7 @@ namespace AcademicProgressTracker.WebApi.Services.Implementations
                     throw new BadHttpRequestException("Неверный пароль!");
                 }
 
-                var accessToken = CreateJWT(user);
+                var accessToken = CreateJwt(user);
                 var refreshToken = new RefreshToken(30);
 
                 // При каждой авторизации пользователя обновляем ему refresh token в бд
@@ -81,7 +81,7 @@ namespace AcademicProgressTracker.WebApi.Services.Implementations
                 user.TokenExpires = refreshToken.Expires;
                 await _userRepository.Update(user);
 
-                return new AuthTokensDTO(accessToken, refreshToken);
+                return new AuthTokensDto(accessToken, refreshToken);
             }
             catch (Exception ex)
             {
@@ -90,7 +90,7 @@ namespace AcademicProgressTracker.WebApi.Services.Implementations
             }
         }
 
-        public async Task<AuthTokensDTO> UpdateRefreshToken(string? oldRefreshToken)
+        public async Task<AuthTokensDto> UpdateRefreshToken(string? oldRefreshToken)
         {
             try
             {
@@ -107,7 +107,7 @@ namespace AcademicProgressTracker.WebApi.Services.Implementations
                     throw new UnauthorizedAccessException("Срок действия refresh токена истек!");
                 }
 
-                var accessToken = CreateJWT(user);
+                var accessToken = CreateJwt(user);
                 var newRefreshToken = new RefreshToken(30);
 
                 // Устанавливаем новый refresh токен в бд
@@ -116,7 +116,7 @@ namespace AcademicProgressTracker.WebApi.Services.Implementations
                 user.TokenExpires = newRefreshToken.Expires;
                 await _userRepository.Update(user);
 
-                return new AuthTokensDTO(accessToken, newRefreshToken);
+                return new AuthTokensDto(accessToken, newRefreshToken);
             }
             catch (Exception ex)
             {
@@ -125,7 +125,7 @@ namespace AcademicProgressTracker.WebApi.Services.Implementations
             }
         }
 
-        private AccessToken CreateJWT(User user)
+        private AccessToken CreateJwt(User user)
         {
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
                 _configuration.GetSection("AppSettings:JwtSecret").Value!));

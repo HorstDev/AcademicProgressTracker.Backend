@@ -3,7 +3,6 @@ using AcademicProgressTracker.Domain;
 using AcademicProgressTracker.WebApi.Models;
 using AcademicProgressTracker.WebApi.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AcademicProgressTracker.WebApi.Controllers
@@ -12,12 +11,10 @@ namespace AcademicProgressTracker.WebApi.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IConfiguration _configuration;
         private readonly IAuthService _authService;
 
-        public AuthController(IConfiguration configuration, IAuthService authService)
+        public AuthController(IAuthService authService)
         {
-            _configuration = configuration;
             _authService = authService;
         }
 
@@ -28,7 +25,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register([FromBody] UserDTO request)
+        public async Task<ActionResult<User>> Register([FromBody] UserDto request)
         {
             var registeredUser = await _authService.Register(request);
 
@@ -36,7 +33,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login([FromBody] UserDTO request)
+        public async Task<ActionResult<string>> Login([FromBody] UserDto request)
         {
             var authTokens = await _authService.Login(request);
             SetRefreshTokenToCookies(authTokens.RefreshToken);
@@ -45,7 +42,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return Ok(accessToken);
         }
 
-        // Этот метод мы вызываем, когда клиент понял, что истекает или уже истек срок действия access токена и надо выдать новую пару acccess и refresh токена
+        // Этот метод мы вызываем, когда клиент понял, что истекает или уже истек срок действия access токена и надо выдать новую пару access и refresh токена
         [HttpPost("refresh-token")]
         public async Task<ActionResult<string>> RefreshToken()
         {

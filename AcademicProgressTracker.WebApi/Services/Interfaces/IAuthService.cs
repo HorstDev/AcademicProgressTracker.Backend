@@ -5,8 +5,8 @@ namespace AcademicProgressTracker.WebApi.Services.Interfaces
 {
     public interface IAuthService
     {
-        Task<User> Register(UserDTO user);
-        Task<AuthTokensDTO> Login(UserDTO user);
-        Task<AuthTokensDTO> UpdateRefreshToken(string? oldRefreshToken);
+        Task<User> Register(UserDto user);
+        Task<AuthTokensDto> Login(UserDto user);
+        Task<AuthTokensDto> UpdateRefreshToken(string? oldRefreshToken);
     }
 }

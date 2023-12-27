@@ -6,7 +6,6 @@ using AcademicProgressTracker.WebApi.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
-using System;
 using Swashbuckle.AspNetCore.Filters;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -24,9 +23,9 @@ builder.Services.AddDbContext<AcademicProgressDataContext>(
     );
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-// Сервисы
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 builder.Services.AddScoped<IAuthService, AuthService>();
-// Репозитории
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
@@ -72,8 +71,8 @@ builder.Services.AddCors(options =>
     {
         builder
             .WithOrigins("http://localhost:4200")
-            .AllowAnyMethod() // Разрешить любые HTTP-методы
-            .AllowAnyHeader() // Разрешить любые HTTP-заголовки
+            .AllowAnyMethod() // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ HTTP-пїЅпїЅпїЅпїЅпїЅпїЅ
+            .AllowAnyHeader() // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ HTTP-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             .AllowCredentials();
     });
 });
@@ -92,7 +91,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Middleware для обработки кастомных исключений
+// Middleware пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 app.UseCustomExceptionHandler();
 
 app.UseHttpsRedirection();

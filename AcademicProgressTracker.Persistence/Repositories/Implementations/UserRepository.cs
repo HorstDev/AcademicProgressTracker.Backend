@@ -1,11 +1,6 @@
 ﻿using AcademicProgressTracker.Domain;
 using AcademicProgressTracker.Persistence.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AcademicProgressTracker.Persistence.Repositories.Implementations
 {
@@ -20,8 +15,16 @@ namespace AcademicProgressTracker.Persistence.Repositories.Implementations
 
         public async Task Create(User entity)
         {
-            await _db.Users.AddAsync(entity);
-            await _db.SaveChangesAsync();
+            if (entity.Id == null)
+            {
+                entity.Id = Guid.NewGuid();
+                await _db.Users.AddAsync(entity);
+                await _db.SaveChangesAsync();
+            }
+            else
+            {
+                await Update(entity);
+            }
         }
 
         public async Task<List<User>?> GetAll()
