@@ -71,8 +71,8 @@ builder.Services.AddCors(options =>
     {
         builder
             .WithOrigins("http://localhost:4200")
-            .AllowAnyMethod() // ��������� ����� HTTP-������
-            .AllowAnyHeader() // ��������� ����� HTTP-���������
+            .AllowAnyMethod()
+            .AllowAnyHeader()
             .AllowCredentials();
     });
 });
@@ -91,10 +91,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
 // Middleware ��� ��������� ��������� ����������
 app.UseCustomExceptionHandler();
 
 app.UseHttpsRedirection();
+
+app.UseCors("NgOrigins");
 
 app.UseAuthentication();
 app.UseAuthorization();
