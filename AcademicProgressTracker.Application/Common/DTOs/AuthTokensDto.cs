@@ -1,6 +1,6 @@
 ﻿using AcademicProgressTracker.Application.Auth;
 
-namespace AcademicProgressTracker.WebApi.Models
+namespace AcademicProgressTracker.Application.Common.DTOs
 {
     public class AuthTokensDto
     {

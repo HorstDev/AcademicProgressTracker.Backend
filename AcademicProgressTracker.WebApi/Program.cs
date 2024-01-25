@@ -1,8 +1,4 @@
 using AcademicProgressTracker.Persistence;
-using AcademicProgressTracker.Persistence.Repositories.Implementations;
-using AcademicProgressTracker.Persistence.Repositories.Interfaces;
-using AcademicProgressTracker.WebApi.Services.Implementations;
-using AcademicProgressTracker.WebApi.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
@@ -13,6 +9,10 @@ using System.Text;
 using AcademicProgressTracker.Application.Auth;
 using AcademicProgressTracker.WebApi.Middleware;
 using AcademicProgressTracker.Application.Common.Interfaces;
+using AcademicProgressTracker.Application.Common.Interfaces.Repositories;
+using AcademicProgressTracker.Persistence.Repositories;
+using AcademicProgressTracker.Application.Common.Interfaces.Services;
+using AcademicProgressTracker.WebApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 

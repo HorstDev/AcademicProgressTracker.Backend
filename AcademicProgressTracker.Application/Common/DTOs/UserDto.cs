@@ -1,4 +1,4 @@
-﻿namespace AcademicProgressTracker.WebApi.Models
+﻿namespace AcademicProgressTracker.Application.Common.DTOs
 {
     public class UserDto
     {

@@ -1,8 +1,8 @@
-﻿using AcademicProgressTracker.Domain;
-using AcademicProgressTracker.Persistence.Repositories.Interfaces;
+﻿using AcademicProgressTracker.Application.Common.Interfaces.Repositories;
+using AcademicProgressTracker.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace AcademicProgressTracker.Persistence.Repositories.Implementations
+namespace AcademicProgressTracker.Persistence.Repositories
 {
     public class RoleRepository : IRoleRepository
     {

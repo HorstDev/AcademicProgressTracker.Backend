@@ -1,7 +1,7 @@
 ﻿using AcademicProgressTracker.Application.Auth;
+using AcademicProgressTracker.Application.Common.DTOs;
+using AcademicProgressTracker.Application.Common.Interfaces.Services;
 using AcademicProgressTracker.Domain;
-using AcademicProgressTracker.WebApi.Models;
-using AcademicProgressTracker.WebApi.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

@@ -1,12 +1,12 @@
 ﻿using AcademicProgressTracker.Application.Auth;
+using AcademicProgressTracker.Application.Common.DTOs;
 using AcademicProgressTracker.Application.Common.Interfaces;
+using AcademicProgressTracker.Application.Common.Interfaces.Repositories;
+using AcademicProgressTracker.Application.Common.Interfaces.Services;
 using AcademicProgressTracker.Domain;
-using AcademicProgressTracker.Persistence.Repositories.Interfaces;
-using AcademicProgressTracker.WebApi.Models;
-using AcademicProgressTracker.WebApi.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AcademicProgressTracker.WebApi.Services.Implementations
+namespace AcademicProgressTracker.WebApi.Services
 {
     public class AuthService : IAuthService
     {
@@ -16,7 +16,7 @@ namespace AcademicProgressTracker.WebApi.Services.Implementations
         private readonly IPasswordHasher _passwordHasher;
 
         public AuthService(
-            IConfiguration configuration, IUserRepository userRepository, 
+            IConfiguration configuration, IUserRepository userRepository,
             IRoleRepository roleRepository, IPasswordHasher passwordHasher)
         {
             _configuration = configuration;

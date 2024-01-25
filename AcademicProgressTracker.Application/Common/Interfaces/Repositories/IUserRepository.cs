@@ -1,6 +1,6 @@
 ﻿using AcademicProgressTracker.Domain;
 
-namespace AcademicProgressTracker.Persistence.Repositories.Interfaces
+namespace AcademicProgressTracker.Application.Common.Interfaces.Repositories
 {
     public interface IUserRepository
     {

@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AcademicProgressTracker.Application\AcademicProgressTracker.Application.csproj" />
     <ProjectReference Include="..\AcademicProgressTracker.Domain\AcademicProgressTracker.Domain.csproj" />
   </ItemGroup>
 

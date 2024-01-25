@@ -1,7 +1,7 @@
-﻿using AcademicProgressTracker.Domain;
-using AcademicProgressTracker.WebApi.Models;
+﻿using AcademicProgressTracker.Application.Common.DTOs;
+using AcademicProgressTracker.Domain;
 
-namespace AcademicProgressTracker.WebApi.Services.Interfaces
+namespace AcademicProgressTracker.Application.Common.Interfaces.Services
 {
     public interface IAuthService
     {
