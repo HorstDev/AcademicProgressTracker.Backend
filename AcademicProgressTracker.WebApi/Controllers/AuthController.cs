@@ -25,17 +25,17 @@ namespace AcademicProgressTracker.WebApi.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register([FromBody] UserDto request)
+        public async Task<ActionResult<User>> RegisterAsync([FromBody] UserDto request)
         {
-            var registeredUser = await _authService.Register(request);
+            var registeredUser = await _authService.RegisterAsync(request);
 
-            return CreatedAtAction(nameof(Register), new { id = registeredUser.Id }, registeredUser);
+            return CreatedAtAction(nameof(RegisterAsync), new { id = registeredUser.Id }, registeredUser);
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login([FromBody] UserDto request)
+        public async Task<ActionResult<string>> LoginAsync([FromBody] UserDto request)
         {
-            var authTokens = await _authService.Login(request);
+            var authTokens = await _authService.LoginAsync(request);
             SetRefreshTokenToCookies(authTokens.RefreshToken);
             var accessToken = authTokens.AccessToken.Token;
 
@@ -44,10 +44,10 @@ namespace AcademicProgressTracker.WebApi.Controllers
 
         // Этот метод мы вызываем, когда клиент понял, что истекает или уже истек срок действия access токена и надо выдать новую пару access и refresh токена
         [HttpPost("refresh-token")]
-        public async Task<ActionResult<string>> RefreshToken()
+        public async Task<ActionResult<string>> RefreshTokenAsync()
         {
             var refreshToken = Request.Cookies["refreshToken"];
-            var newAuthTokens = await _authService.UpdateRefreshToken(refreshToken);
+            var newAuthTokens = await _authService.UpdateRefreshTokenAsync(refreshToken);
             SetRefreshTokenToCookies(newAuthTokens.RefreshToken);
             var accessToken = newAuthTokens.AccessToken.Token;
 

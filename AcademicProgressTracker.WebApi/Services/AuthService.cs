@@ -25,11 +25,11 @@ namespace AcademicProgressTracker.WebApi.Services
             _passwordHasher = passwordHasher;
         }
 
-        public async Task<User> Register(UserDto request)
+        public async Task<User> RegisterAsync(UserDto request)
         {
             try
             {
-                User? user = await _userRepository.GetByEmail(request.Email);
+                User? user = await _userRepository.GetByEmailAsync(request.Email);
                 if (user == null)
                 {
                     _passwordHasher.CreateHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
@@ -39,9 +39,9 @@ namespace AcademicProgressTracker.WebApi.Services
                         PasswordHash = passwordHash,
                         PasswordSalt = passwordSalt
                     };
-                    Role userRole = (await _roleRepository.GetByName("Student"))!;
+                    Role userRole = (await _roleRepository.GetByNameAsync("Student"))!;
                     user.Role = userRole;
-                    await _userRepository.Create(user);
+                    await _userRepository.CreateAsync(user);
 
                     return user;
                 }
@@ -57,11 +57,11 @@ namespace AcademicProgressTracker.WebApi.Services
             }
         }
 
-        public async Task<AuthTokensDto> Login(UserDto request)
+        public async Task<AuthTokensDto> LoginAsync(UserDto request)
         {
             try
             {
-                User? user = await _userRepository.GetByEmail(request.Email);
+                User? user = await _userRepository.GetByEmailAsync(request.Email);
                 if (user == null)
                 {
                     throw new BadHttpRequestException("Пользователь не найден!");
@@ -79,7 +79,7 @@ namespace AcademicProgressTracker.WebApi.Services
                 user.RefreshToken = refreshToken.Token;
                 user.TokenCreated = refreshToken.Created;
                 user.TokenExpires = refreshToken.Expires;
-                await _userRepository.Update(user);
+                await _userRepository.UpdateAsync(user);
 
                 return new AuthTokensDto(accessToken, refreshToken);
             }
@@ -90,12 +90,12 @@ namespace AcademicProgressTracker.WebApi.Services
             }
         }
 
-        public async Task<AuthTokensDto> UpdateRefreshToken(string? oldRefreshToken)
+        public async Task<AuthTokensDto> UpdateRefreshTokenAsync(string? oldRefreshToken)
         {
             try
             {
                 //var refreshToken = Request.Cookies["refreshToken"];
-                var user = await _userRepository.GetByRefreshToken(oldRefreshToken); // P.S. наверное надо выставить индексы на refresh токен
+                var user = await _userRepository.GetByRefreshTokenAsync(oldRefreshToken); // P.S. наверное надо выставить индексы на refresh токен
 
                 // Если пользователя с таким refresh токеном не найдено (т.е. странные ситуации, когда неавторизованный пользователь зачем-то хочет refresh токен)
                 if (user == null)
@@ -114,7 +114,7 @@ namespace AcademicProgressTracker.WebApi.Services
                 user.RefreshToken = newRefreshToken.Token;
                 user.TokenCreated = newRefreshToken.Created;
                 user.TokenExpires = newRefreshToken.Expires;
-                await _userRepository.Update(user);
+                await _userRepository.UpdateAsync(user);
 
                 return new AuthTokensDto(accessToken, newRefreshToken);
             }

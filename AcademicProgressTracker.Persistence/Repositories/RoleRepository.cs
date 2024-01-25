@@ -13,7 +13,7 @@ namespace AcademicProgressTracker.Persistence.Repositories
             _db = db;
         }
 
-        public async Task<Role?> GetByName(string roleName)
+        public async Task<Role?> GetByNameAsync(string roleName)
         {
             return await _db.Roles.SingleAsync(x => x.Name == roleName);
         }

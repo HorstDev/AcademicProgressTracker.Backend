@@ -13,7 +13,7 @@ namespace AcademicProgressTracker.Persistence.Repositories
             _db = db;
         }
 
-        public async Task Create(User entity)
+        public async Task CreateAsync(User entity)
         {
             if (entity.Id == null)
             {
@@ -23,22 +23,22 @@ namespace AcademicProgressTracker.Persistence.Repositories
             }
             else
             {
-                await Update(entity);
+                await UpdateAsync(entity);
             }
         }
 
-        public async Task<List<User>?> GetAll()
+        public async Task<List<User>?> GetAllAsync()
         {
             return await _db.Users.ToListAsync();
         }
 
-        public async Task Delete(User entity)
+        public async Task DeleteAsync(User entity)
         {
             _db.Users.Remove(entity);
             await _db.SaveChangesAsync();
         }
 
-        public async Task<User> Update(User entity)
+        public async Task<User> UpdateAsync(User entity)
         {
             _db.Users.Update(entity);
             await _db.SaveChangesAsync();
@@ -46,21 +46,21 @@ namespace AcademicProgressTracker.Persistence.Repositories
             return entity;
         }
 
-        public async Task<User?> GetById(Guid id)
+        public async Task<User?> GetByIdAsync(Guid id)
         {
             return await _db.Users
                 .Include(u => u.Role)
                 .SingleOrDefaultAsync(x => x.Id == id);
         }
 
-        public async Task<User?> GetByEmail(string email)
+        public async Task<User?> GetByEmailAsync(string email)
         {
             return await _db.Users
                 .Include(u => u.Role)
                 .SingleOrDefaultAsync(x => x.Email == email);
         }
 
-        public async Task<User?> GetByRefreshToken(string? refreshToken)
+        public async Task<User?> GetByRefreshTokenAsync(string? refreshToken)
         {
             return await _db.Users
                 .Include(u => u.Role)
