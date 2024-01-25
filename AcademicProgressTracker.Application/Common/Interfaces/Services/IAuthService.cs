@@ -1,5 +1,5 @@
 ﻿using AcademicProgressTracker.Application.Common.DTOs;
-using AcademicProgressTracker.Domain;
+using AcademicProgressTracker.Domain.Entities;
 
 namespace AcademicProgressTracker.Application.Common.Interfaces.Services
 {

@@ -1,4 +1,4 @@
-﻿using AcademicProgressTracker.Domain;
+﻿using AcademicProgressTracker.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace AcademicProgressTracker.Persistence

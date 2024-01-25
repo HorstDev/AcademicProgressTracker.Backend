@@ -18,7 +18,9 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false)
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Course = table.Column<int>(type: "integer", nullable: false),
+                    YearCreated = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -196,9 +198,9 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 columns: new[] { "Id", "Name" },
                 values: new object[,]
                 {
-                    { new Guid("16618850-331b-4114-ada8-b3b6d1054ebc"), "Teacher" },
-                    { new Guid("1b18f48b-4b11-4a26-be6a-7eb85ad8e422"), "Student" },
-                    { new Guid("ccb7c0e2-0774-4138-9f42-ec0635aaa6a7"), "Admin" }
+                    { new Guid("573ed431-b4fc-4fc7-8909-5192907fcafa"), "Student" },
+                    { new Guid("c32402da-a786-460b-b76a-319bade15b65"), "Teacher" },
+                    { new Guid("eaee1196-5564-408c-9dc6-9d2df1982c2c"), "Admin" }
                 });
 
             migrationBuilder.CreateIndex(

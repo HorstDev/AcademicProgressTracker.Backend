@@ -1,4 +1,4 @@
-﻿namespace AcademicProgressTracker.Domain
+﻿namespace AcademicProgressTracker.Domain.Entities
 {
     public abstract class Person
     {

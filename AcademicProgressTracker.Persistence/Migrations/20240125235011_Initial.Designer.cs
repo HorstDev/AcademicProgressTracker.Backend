@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AcademicProgressTracker.Persistence.Migrations
 {
     [DbContext(typeof(AcademicProgressDataContext))]
-    [Migration("20240123184506_Initial")]
+    [Migration("20240125235011_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -25,22 +25,28 @@ namespace AcademicProgressTracker.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseSerialColumns(modelBuilder);
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Group", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Group", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("Course")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<int>("YearCreated")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.ToTable("Groups");
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.LabWork", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.LabWork", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -62,7 +68,7 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.ToTable("LabWorks");
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.LabWorkStatus", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.LabWorkStatus", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -86,7 +92,7 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.ToTable("LabWorkStatuses");
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Person", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Person", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -110,7 +116,7 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.UseTphMappingStrategy();
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Role", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Role", b =>
                 {
                     b.Property<Guid?>("Id")
                         .ValueGeneratedOnAdd()
@@ -127,22 +133,22 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("1b18f48b-4b11-4a26-be6a-7eb85ad8e422"),
+                            Id = new Guid("573ed431-b4fc-4fc7-8909-5192907fcafa"),
                             Name = "Student"
                         },
                         new
                         {
-                            Id = new Guid("16618850-331b-4114-ada8-b3b6d1054ebc"),
+                            Id = new Guid("c32402da-a786-460b-b76a-319bade15b65"),
                             Name = "Teacher"
                         },
                         new
                         {
-                            Id = new Guid("ccb7c0e2-0774-4138-9f42-ec0635aaa6a7"),
+                            Id = new Guid("eaee1196-5564-408c-9dc6-9d2df1982c2c"),
                             Name = "Admin"
                         });
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Subject", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Subject", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -165,7 +171,7 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.ToTable("Subjects");
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.User", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.User", b =>
                 {
                     b.Property<Guid?>("Id")
                         .ValueGeneratedOnAdd()
@@ -218,9 +224,9 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.ToTable("GroupTeacher");
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Administrator", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Administrator", b =>
                 {
-                    b.HasBaseType("AcademicProgressTracker.Domain.Person");
+                    b.HasBaseType("AcademicProgressTracker.Domain.Entities.Person");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -230,9 +236,9 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.HasDiscriminator().HasValue("Administrator");
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Student", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Student", b =>
                 {
-                    b.HasBaseType("AcademicProgressTracker.Domain.Person");
+                    b.HasBaseType("AcademicProgressTracker.Domain.Entities.Person");
 
                     b.Property<Guid>("GroupId")
                         .HasColumnType("uuid");
@@ -253,9 +259,9 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.HasDiscriminator().HasValue("Student");
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Teacher", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Teacher", b =>
                 {
-                    b.HasBaseType("AcademicProgressTracker.Domain.Person");
+                    b.HasBaseType("AcademicProgressTracker.Domain.Entities.Person");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -271,9 +277,9 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.HasDiscriminator().HasValue("Teacher");
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.LabWork", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.LabWork", b =>
                 {
-                    b.HasOne("AcademicProgressTracker.Domain.Subject", "Subject")
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.Subject", "Subject")
                         .WithMany()
                         .HasForeignKey("SubjectId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -282,15 +288,15 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.Navigation("Subject");
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.LabWorkStatus", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.LabWorkStatus", b =>
                 {
-                    b.HasOne("AcademicProgressTracker.Domain.LabWork", "LabWork")
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.LabWork", "LabWork")
                         .WithMany()
                         .HasForeignKey("LabWorkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AcademicProgressTracker.Domain.Student", "Student")
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.Student", "Student")
                         .WithMany()
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -301,9 +307,9 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.Navigation("Student");
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Subject", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Subject", b =>
                 {
-                    b.HasOne("AcademicProgressTracker.Domain.Group", "Group")
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.Group", "Group")
                         .WithMany()
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -312,9 +318,9 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.Navigation("Group");
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.User", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.User", b =>
                 {
-                    b.HasOne("AcademicProgressTracker.Domain.Role", "Role")
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.Role", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId");
 
@@ -323,22 +329,22 @@ namespace AcademicProgressTracker.Persistence.Migrations
 
             modelBuilder.Entity("GroupTeacher", b =>
                 {
-                    b.HasOne("AcademicProgressTracker.Domain.Group", null)
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.Group", null)
                         .WithMany()
                         .HasForeignKey("GroupsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AcademicProgressTracker.Domain.Teacher", null)
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.Teacher", null)
                         .WithMany()
                         .HasForeignKey("TeachersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Administrator", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Administrator", b =>
                 {
-                    b.HasOne("AcademicProgressTracker.Domain.User", "User")
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -347,15 +353,15 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Student", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Student", b =>
                 {
-                    b.HasOne("AcademicProgressTracker.Domain.Group", "Group")
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.Group", "Group")
                         .WithMany()
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AcademicProgressTracker.Domain.User", "User")
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -366,9 +372,9 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Teacher", b =>
+            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Teacher", b =>
                 {
-                    b.HasOne("AcademicProgressTracker.Domain.User", "User")
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

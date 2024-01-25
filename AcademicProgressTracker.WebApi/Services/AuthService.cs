@@ -3,7 +3,7 @@ using AcademicProgressTracker.Application.Common.DTOs;
 using AcademicProgressTracker.Application.Common.Interfaces;
 using AcademicProgressTracker.Application.Common.Interfaces.Repositories;
 using AcademicProgressTracker.Application.Common.Interfaces.Services;
-using AcademicProgressTracker.Domain;
+using AcademicProgressTracker.Domain.Entities;
 using Microsoft.IdentityModel.Tokens;
 
 namespace AcademicProgressTracker.WebApi.Services
