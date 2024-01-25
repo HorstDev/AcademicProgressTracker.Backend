@@ -29,7 +29,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
         {
             var registeredUser = await _authService.RegisterAsync(request);
 
-            return CreatedAtAction(nameof(RegisterAsync), new { id = registeredUser.Id }, registeredUser);
+            return CreatedAtAction("register", new { id = registeredUser.Id }, registeredUser);
         }
 
         [HttpPost("login")]
