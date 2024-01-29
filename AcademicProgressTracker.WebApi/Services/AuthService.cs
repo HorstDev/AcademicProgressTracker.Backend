@@ -41,16 +41,9 @@ namespace AcademicProgressTracker.WebApi.Services
                         PasswordSalt = passwordSalt
                     };
                     Role userRole = (await _roleRepository.GetByNameAsync("Student"))!;
-                    user.Role = userRole;
-
-                    var student = new Student
-                    {
-                        Name = request.Name,
-                        GroupId = request.GroupId,
-                        User = user
-                    };
+                    user.Roles.Add(userRole);
                     
-                    user = await _userRepository.CreateStudentUserAsync(student);
+                    user = await _userRepository.CreateAsync(user);
 
                     return user;
                 }

@@ -38,6 +38,23 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    PasswordHash = table.Column<byte[]>(type: "bytea", nullable: false),
+                    PasswordSalt = table.Column<byte[]>(type: "bytea", nullable: false),
+                    RefreshToken = table.Column<string>(type: "text", nullable: false),
+                    TokenCreated = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
+                    TokenExpires = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Subjects",
                 columns: table => new
                 {
@@ -58,26 +75,27 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "RoleUser",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    PasswordHash = table.Column<byte[]>(type: "bytea", nullable: false),
-                    PasswordSalt = table.Column<byte[]>(type: "bytea", nullable: false),
-                    RefreshToken = table.Column<string>(type: "text", nullable: false),
-                    TokenCreated = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    TokenExpires = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
-                    RoleId = table.Column<Guid>(type: "uuid", nullable: true)
+                    RolesId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UsersId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_RoleUser", x => new { x.RolesId, x.UsersId });
                     table.ForeignKey(
-                        name: "FK_Users_Roles_RoleId",
-                        column: x => x.RoleId,
+                        name: "FK_RoleUser_Roles_RolesId",
+                        column: x => x.RolesId,
                         principalTable: "Roles",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_RoleUser_Users_UsersId",
+                        column: x => x.UsersId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -101,63 +119,13 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Persons",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    UserId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Discriminator = table.Column<string>(type: "character varying(13)", maxLength: 13, nullable: false),
-                    GroupId = table.Column<Guid>(type: "uuid", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Persons", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Persons_Groups_GroupId",
-                        column: x => x.GroupId,
-                        principalTable: "Groups",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Persons_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "GroupTeacher",
-                columns: table => new
-                {
-                    GroupsId = table.Column<Guid>(type: "uuid", nullable: false),
-                    TeachersId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_GroupTeacher", x => new { x.GroupsId, x.TeachersId });
-                    table.ForeignKey(
-                        name: "FK_GroupTeacher_Groups_GroupsId",
-                        column: x => x.GroupsId,
-                        principalTable: "Groups",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_GroupTeacher_Persons_TeachersId",
-                        column: x => x.TeachersId,
-                        principalTable: "Persons",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "LabWorkStatuses",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     IsCompleted = table.Column<bool>(type: "boolean", nullable: false),
                     LabWorkId = table.Column<Guid>(type: "uuid", nullable: false),
-                    StudentId = table.Column<Guid>(type: "uuid", nullable: false)
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -169,17 +137,12 @@ namespace AcademicProgressTracker.Persistence.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_LabWorkStatuses_Persons_StudentId",
-                        column: x => x.StudentId,
-                        principalTable: "Persons",
+                        name: "FK_LabWorkStatuses_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_GroupTeacher_TeachersId",
-                table: "GroupTeacher",
-                column: "TeachersId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LabWorkStatuses_LabWorkId",
@@ -187,9 +150,9 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 column: "LabWorkId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LabWorkStatuses_StudentId",
+                name: "IX_LabWorkStatuses_UserId",
                 table: "LabWorkStatuses",
-                column: "StudentId");
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LabWorks_SubjectId",
@@ -197,52 +160,39 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 column: "SubjectId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Persons_GroupId",
-                table: "Persons",
-                column: "GroupId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Persons_UserId",
-                table: "Persons",
-                column: "UserId");
+                name: "IX_RoleUser_UsersId",
+                table: "RoleUser",
+                column: "UsersId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Subjects_GroupId",
                 table: "Subjects",
                 column: "GroupId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_RoleId",
-                table: "Users",
-                column: "RoleId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GroupTeacher");
+                name: "LabWorkStatuses");
 
             migrationBuilder.DropTable(
-                name: "LabWorkStatuses");
+                name: "RoleUser");
 
             migrationBuilder.DropTable(
                 name: "LabWorks");
 
             migrationBuilder.DropTable(
-                name: "Persons");
-
-            migrationBuilder.DropTable(
-                name: "Subjects");
+                name: "Roles");
 
             migrationBuilder.DropTable(
                 name: "Users");
 
             migrationBuilder.DropTable(
-                name: "Groups");
+                name: "Subjects");
 
             migrationBuilder.DropTable(
-                name: "Roles");
+                name: "Groups");
         }
     }
 }

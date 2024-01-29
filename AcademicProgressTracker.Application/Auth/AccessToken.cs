@@ -20,9 +20,14 @@ namespace AcademicProgressTracker.Application.Auth
             // в claims будет лежать вся информация о пользователе, которая нам нужна в токене
             List<Claim> claims = new List<Claim>
             {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Email),
-                new Claim(ClaimTypes.Role, user.Role.Name)
             };
+
+            foreach(var role in user.Roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role.Name));
+            }
 
             var creds = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha512Signature);
 

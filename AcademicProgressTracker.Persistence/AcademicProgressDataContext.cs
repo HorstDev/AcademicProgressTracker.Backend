@@ -7,10 +7,6 @@ namespace AcademicProgressTracker.Persistence
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
-        public DbSet<Person> Persons { get; set; }
-        public DbSet<Student> Students { get; set; }
-        public DbSet<Teacher> Teachers { get; set; }
-        public DbSet<Administrator> Administrators { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<LabWork> LabWorks { get; set; }

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AcademicProgressTracker.Persistence.Migrations
 {
     [DbContext(typeof(AcademicProgressDataContext))]
-    [Migration("20240127200221_Initial")]
+    [Migration("20240129033932_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -80,50 +80,21 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.Property<Guid>("LabWorkId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("StudentId")
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("LabWorkId");
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("LabWorkStatuses");
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Person", b =>
-                {
-                    b.Property<Guid?>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("character varying(13)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Persons");
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("Person");
-
-                    b.UseTphMappingStrategy();
-                });
-
             modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Role", b =>
                 {
-                    b.Property<Guid?>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -161,7 +132,7 @@ namespace AcademicProgressTracker.Persistence.Migrations
 
             modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.User", b =>
                 {
-                    b.Property<Guid?>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
@@ -181,9 +152,6 @@ namespace AcademicProgressTracker.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("RoleId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("TokenCreated")
                         .HasColumnType("timestamp without time zone");
 
@@ -192,50 +160,22 @@ namespace AcademicProgressTracker.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RoleId");
-
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("GroupTeacher", b =>
+            modelBuilder.Entity("RoleUser", b =>
                 {
-                    b.Property<Guid>("GroupsId")
+                    b.Property<Guid>("RolesId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("TeachersId")
+                    b.Property<Guid>("UsersId")
                         .HasColumnType("uuid");
 
-                    b.HasKey("GroupsId", "TeachersId");
+                    b.HasKey("RolesId", "UsersId");
 
-                    b.HasIndex("TeachersId");
+                    b.HasIndex("UsersId");
 
-                    b.ToTable("GroupTeacher");
-                });
-
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Administrator", b =>
-                {
-                    b.HasBaseType("AcademicProgressTracker.Domain.Entities.Person");
-
-                    b.HasDiscriminator().HasValue("Administrator");
-                });
-
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Student", b =>
-                {
-                    b.HasBaseType("AcademicProgressTracker.Domain.Entities.Person");
-
-                    b.Property<Guid>("GroupId")
-                        .HasColumnType("uuid");
-
-                    b.HasIndex("GroupId");
-
-                    b.HasDiscriminator().HasValue("Student");
-                });
-
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Teacher", b =>
-                {
-                    b.HasBaseType("AcademicProgressTracker.Domain.Entities.Person");
-
-                    b.HasDiscriminator().HasValue("Teacher");
+                    b.ToTable("RoleUser");
                 });
 
             modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.LabWork", b =>
@@ -257,22 +197,13 @@ namespace AcademicProgressTracker.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AcademicProgressTracker.Domain.Entities.Student", "Student")
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.User", "User")
                         .WithMany()
-                        .HasForeignKey("StudentId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("LabWork");
-
-                    b.Navigation("Student");
-                });
-
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Person", b =>
-                {
-                    b.HasOne("AcademicProgressTracker.Domain.Entities.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });
@@ -288,39 +219,19 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.Navigation("Group");
                 });
 
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.User", b =>
+            modelBuilder.Entity("RoleUser", b =>
                 {
-                    b.HasOne("AcademicProgressTracker.Domain.Entities.Role", "Role")
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.Role", null)
                         .WithMany()
-                        .HasForeignKey("RoleId");
-
-                    b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("GroupTeacher", b =>
-                {
-                    b.HasOne("AcademicProgressTracker.Domain.Entities.Group", null)
-                        .WithMany()
-                        .HasForeignKey("GroupsId")
+                        .HasForeignKey("RolesId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("AcademicProgressTracker.Domain.Entities.Teacher", null)
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.User", null)
                         .WithMany()
-                        .HasForeignKey("TeachersId")
+                        .HasForeignKey("UsersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Student", b =>
-                {
-                    b.HasOne("AcademicProgressTracker.Domain.Entities.Group", "Group")
-                        .WithMany()
-                        .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Group");
                 });
 #pragma warning restore 612, 618
         }
