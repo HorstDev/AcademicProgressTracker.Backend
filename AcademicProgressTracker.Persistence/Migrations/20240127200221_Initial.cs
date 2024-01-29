@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace AcademicProgressTracker.Persistence.Migrations
 {
     /// <inheritdoc />
@@ -108,11 +106,9 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Discriminator = table.Column<string>(type: "character varying(13)", maxLength: 13, nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Student_UserId = table.Column<Guid>(type: "uuid", nullable: true),
-                    GroupId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Teacher_UserId = table.Column<Guid>(type: "uuid", nullable: true)
+                    Discriminator = table.Column<string>(type: "character varying(13)", maxLength: 13, nullable: false),
+                    GroupId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -124,23 +120,10 @@ namespace AcademicProgressTracker.Persistence.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Persons_Users_Student_UserId",
-                        column: x => x.Student_UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Persons_Users_Teacher_UserId",
-                        column: x => x.Teacher_UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
                         name: "FK_Persons_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -193,16 +176,6 @@ namespace AcademicProgressTracker.Persistence.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.InsertData(
-                table: "Roles",
-                columns: new[] { "Id", "Name" },
-                values: new object[,]
-                {
-                    { new Guid("573ed431-b4fc-4fc7-8909-5192907fcafa"), "Student" },
-                    { new Guid("c32402da-a786-460b-b76a-319bade15b65"), "Teacher" },
-                    { new Guid("eaee1196-5564-408c-9dc6-9d2df1982c2c"), "Admin" }
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_GroupTeacher_TeachersId",
                 table: "GroupTeacher",
@@ -227,16 +200,6 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 name: "IX_Persons_GroupId",
                 table: "Persons",
                 column: "GroupId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Persons_Student_UserId",
-                table: "Persons",
-                column: "Student_UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Persons_Teacher_UserId",
-                table: "Persons",
-                column: "Teacher_UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Persons_UserId",

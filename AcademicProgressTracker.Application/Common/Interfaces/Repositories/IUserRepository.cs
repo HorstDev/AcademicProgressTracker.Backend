@@ -4,7 +4,7 @@ namespace AcademicProgressTracker.Application.Common.Interfaces.Repositories
 {
     public interface IUserRepository
     {
-        Task CreateAsync(User entity);
+        Task<User> CreateStudentUserAsync(Student student);
         Task<List<User>?> GetAllAsync();
         Task DeleteAsync(User entity);
         Task<User> UpdateAsync(User entity);

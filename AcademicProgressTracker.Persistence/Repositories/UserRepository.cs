@@ -13,18 +13,19 @@ namespace AcademicProgressTracker.Persistence.Repositories
             _db = db;
         }
 
-        public async Task CreateAsync(User entity)
+        public async Task<User> CreateStudentUserAsync(Student student)
         {
-            if (entity.Id == null)
-            {
-                entity.Id = Guid.NewGuid();
-                await _db.Users.AddAsync(entity);
-                await _db.SaveChangesAsync();
-            }
-            else
-            {
-                await UpdateAsync(entity);
-            }
+            if (student.User == null)
+                throw new ApplicationException("Сбой при регистрации. User is null");
+
+            student.Id = Guid.NewGuid();
+            student.User.Id = Guid.NewGuid();
+            student.UserId = student.User.Id;
+            await _db.Users.AddAsync(student.User);
+            await _db.Students.AddAsync(student);
+            await _db.SaveChangesAsync();
+
+            return student.User;
         }
 
         public async Task<List<User>?> GetAllAsync()

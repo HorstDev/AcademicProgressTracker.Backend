@@ -1,6 +1,7 @@
 ﻿using AcademicProgressTracker.Application.Auth;
 using AcademicProgressTracker.Application.Common.DTOs;
 using AcademicProgressTracker.Application.Common.Interfaces.Services;
+using AcademicProgressTracker.Application.Common.ViewModels.Auth;
 using AcademicProgressTracker.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,11 +26,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<User>> RegisterAsync([FromBody] UserDto request)
+        public async Task<ActionResult> RegisterAsync([FromBody] RegisterStudentViewModel request)
         {
-            var registeredUser = await _authService.RegisterAsync(request);
+            var registeredUser = await _authService.RegisterStudentUserAsync(request);
 
-            return CreatedAtAction("register", new { id = registeredUser.Id }, registeredUser);
+            return Created();
         }
 
         [HttpPost("login")]

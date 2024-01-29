@@ -3,6 +3,7 @@ using AcademicProgressTracker.Application.Common.DTOs;
 using AcademicProgressTracker.Application.Common.Interfaces;
 using AcademicProgressTracker.Application.Common.Interfaces.Repositories;
 using AcademicProgressTracker.Application.Common.Interfaces.Services;
+using AcademicProgressTracker.Application.Common.ViewModels.Auth;
 using AcademicProgressTracker.Domain.Entities;
 using Microsoft.IdentityModel.Tokens;
 
@@ -25,7 +26,7 @@ namespace AcademicProgressTracker.WebApi.Services
             _passwordHasher = passwordHasher;
         }
 
-        public async Task<User> RegisterAsync(UserDto request)
+        public async Task<User> RegisterStudentUserAsync(RegisterStudentViewModel request)
         {
             try
             {
@@ -41,7 +42,15 @@ namespace AcademicProgressTracker.WebApi.Services
                     };
                     Role userRole = (await _roleRepository.GetByNameAsync("Student"))!;
                     user.Role = userRole;
-                    await _userRepository.CreateAsync(user);
+
+                    var student = new Student
+                    {
+                        Name = request.Name,
+                        GroupId = request.GroupId,
+                        User = user
+                    };
+                    
+                    user = await _userRepository.CreateStudentUserAsync(student);
 
                     return user;
                 }
