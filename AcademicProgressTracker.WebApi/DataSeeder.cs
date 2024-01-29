@@ -16,7 +16,7 @@ namespace AcademicProgressTracker.WebApi
             {
                 //IPasswordHasher hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 
-                var roles = AllRoles();
+                //var roles = AllRoles();
                 //var groups = new Group[] { new Group { Id = Guid.NewGuid(), Name = "ДИПР", Course = 4, YearCreated = 2020 } };
 
                 //// Первый пользователь (админ)
@@ -50,7 +50,7 @@ namespace AcademicProgressTracker.WebApi
                 // ----------------------------------- //
 
                 //context.Groups.AddRange(groups);
-                context.Roles.AddRange(roles);
+                //context.Roles.AddRange(roles);
                 //context.Users.AddRange(user1, user2, user3, user4);
                 //context.Administrators.Add(administrator);
                 //context.Students.Add(student);
@@ -59,7 +59,7 @@ namespace AcademicProgressTracker.WebApi
                 //teacher1.Groups.Add(groups[0]);
                 //teacher2.Groups.Add(groups[0]);
 
-                context.SaveChanges();
+                //context.SaveChanges();
             }
         }
 
