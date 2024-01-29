@@ -13,14 +13,14 @@ namespace AcademicProgressTracker.Persistence.EntityTypeConfigurations
             _studentRoleId = studentRoleId;
         }
 
-        // Данная конфигурация устанавливает правило, что у студента может быть только одна группа
+        // Данная конфигурация устанавливает правило, что у студента может быть только одна группа с помощью уникального индекса
         public void Configure(EntityTypeBuilder<UserGroup> builder)
         {
             builder
                 .HasIndex(ug => new { ug.UserId, ug.RoleId })
                 .IsUnique()
                 .HasFilter($"\"RoleId\" = '{_studentRoleId}'");
-            // P.S. HasFilter работает только с синтаксисом SQL, поэтому берем RoleId в кавычки - "RoleId"
+            // P.S. HasFilter работает только с синтаксисом SQL
         }
     }
 }
