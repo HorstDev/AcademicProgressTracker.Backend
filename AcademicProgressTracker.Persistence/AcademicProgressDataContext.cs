@@ -31,6 +31,7 @@ namespace AcademicProgressTracker.Persistence
             // Получаем данные
             var roles = GetRoles();
             var users = GetUsers();
+            var groups = GetGroups();
 
             // Применяем конфигурации
             modelBuilder.ApplyConfiguration(new UserConfiguration());
@@ -38,9 +39,49 @@ namespace AcademicProgressTracker.Persistence
 
             // Устанавливаем данные
             CreateUsersAndRoles(modelBuilder, users, roles);
+            CreateGroupsAndRelations(modelBuilder, users, roles, groups);
 
             modelBuilder.UseSerialColumns();
             base.OnModelCreating(modelBuilder);
+        }
+
+        private void CreateGroupsAndRelations(ModelBuilder modelBuilder, User[] users, Role[] roles, Group[] groups)
+        {
+            modelBuilder.Entity<Group>().HasData(groups);
+            modelBuilder.Entity<UserGroup>().HasData(
+                    new UserGroup
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = users.Single(x => x.Email == "student@mail.ru").Id,
+                        GroupId = groups.Single(x => x.Name == "ДИПРБ").Id,
+                        RoleId = roles.Single(x => x.Name == "Student").Id
+                    },
+                    new UserGroup
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = users.Single(x => x.Email == "teacher@mail.ru").Id,
+                        GroupId = groups.Single(x => x.Name == "ДИИЭБ").Id,
+                        RoleId = roles.Single(x => x.Name == "Teacher").Id
+                    },
+                    new UserGroup
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = users.Single(x => x.Email == "teacher@mail.ru").Id,
+                        GroupId = groups.Single(x => x.Name == "ДИПРБ").Id,
+                        RoleId = roles.Single(x => x.Name == "Teacher").Id
+                    }
+                );
+        }
+
+        private Group[] GetGroups()
+        {
+            var groups = new Group[]
+            {
+                new Group { Id = Guid.NewGuid(), Name = "ДИПРБ", Course = 4, YearCreated = 2020 },
+                new Group { Id = Guid.NewGuid(), Name = "ДИИЭБ", Course = 4, YearCreated = 2020 },
+            };
+
+            return groups;
         }
 
         private void CreateUsersAndRoles(ModelBuilder modelBuilder, User[] users, Role[] roles)
