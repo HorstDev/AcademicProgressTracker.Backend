@@ -13,7 +13,6 @@ using AcademicProgressTracker.Application.Common.Interfaces.Repositories;
 using AcademicProgressTracker.Persistence.Repositories;
 using AcademicProgressTracker.Application.Common.Interfaces.Services;
 using AcademicProgressTracker.WebApi.Services;
-using AcademicProgressTracker.WebApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -105,5 +104,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.Seed();
 app.Run();

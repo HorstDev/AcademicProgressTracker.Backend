@@ -13,19 +13,12 @@ namespace AcademicProgressTracker.Persistence.Repositories
             _db = db;
         }
 
-        public async Task<User> CreateStudentUserAsync(Student student)
+        public async Task<User> CreateAsync(User entity)
         {
-            if (student.User == null)
-                throw new ApplicationException("Сбой при регистрации. User is null");
-
-            student.Id = Guid.NewGuid();
-            student.User.Id = Guid.NewGuid();
-            student.UserId = student.User.Id;
-            await _db.Users.AddAsync(student.User);
-            await _db.Students.AddAsync(student);
+            await _db.Users.AddAsync(entity);
             await _db.SaveChangesAsync();
 
-            return student.User;
+            return entity;
         }
 
         public async Task<List<User>?> GetAllAsync()
@@ -50,21 +43,21 @@ namespace AcademicProgressTracker.Persistence.Repositories
         public async Task<User?> GetByIdAsync(Guid id)
         {
             return await _db.Users
-                .Include(u => u.Role)
+                .Include(u => u.Roles)
                 .SingleOrDefaultAsync(x => x.Id == id);
         }
 
         public async Task<User?> GetByEmailAsync(string email)
         {
             return await _db.Users
-                .Include(u => u.Role)
+                .Include(u => u.Roles)
                 .SingleOrDefaultAsync(x => x.Email == email);
         }
 
         public async Task<User?> GetByRefreshTokenAsync(string? refreshToken)
         {
             return await _db.Users
-                .Include(u => u.Role)
+                .Include(u => u.Roles)
                 .SingleOrDefaultAsync(x => x.RefreshToken == refreshToken);
         }
     }

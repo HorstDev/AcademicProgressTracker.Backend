@@ -7,7 +7,7 @@
 
         public Guid LabWorkId { get; set; }
         public LabWork? LabWork { get; set; }
-        public Guid StudentId { get; set; }
-        public Student? Student { get; set; }
+        public Guid UserId { get; set; }
+        public User? User { get; set; }
     }
 }
