@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace AcademicProgressTracker.Persistence.Migrations
 {
     [DbContext(typeof(AcademicProgressDataContext))]
-    [Migration("20240131134100_Initial")]
+    [Migration("20240206104013_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -48,14 +48,14 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("62264dfc-8eab-43f2-bffd-a4f165b4dace"),
+                            Id = new Guid("03829da0-798c-4d92-a81c-6c854688df1e"),
                             Course = 4,
                             Name = "ДИПРБ",
                             YearCreated = 2020
                         },
                         new
                         {
-                            Id = new Guid("8e5a260d-1a98-4d0c-9683-75a418b1b560"),
+                            Id = new Guid("3b91b3b9-fafe-4986-a7f3-c1e09025e569"),
                             Course = 4,
                             Name = "ДИИЭБ",
                             YearCreated = 2020
@@ -82,6 +82,36 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.HasIndex("SubjectId");
 
                     b.ToTable("LabWorks");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("75b503f5-2077-4ecb-afcc-8f83ce0951d0"),
+                            MaximumScore = 10f,
+                            Number = 1,
+                            SubjectId = new Guid("3d697097-ffeb-45a5-9d71-544962735524")
+                        },
+                        new
+                        {
+                            Id = new Guid("dbc944fa-ee11-4302-b1e6-3ac0550a0491"),
+                            MaximumScore = 10f,
+                            Number = 2,
+                            SubjectId = new Guid("3d697097-ffeb-45a5-9d71-544962735524")
+                        },
+                        new
+                        {
+                            Id = new Guid("b27784ae-fbd6-4f29-ba7f-e56256de2782"),
+                            MaximumScore = 10f,
+                            Number = 3,
+                            SubjectId = new Guid("3d697097-ffeb-45a5-9d71-544962735524")
+                        },
+                        new
+                        {
+                            Id = new Guid("81a353ba-8d2a-4e68-b8db-a9921bc39971"),
+                            MaximumScore = 10f,
+                            Number = 4,
+                            SubjectId = new Guid("3d697097-ffeb-45a5-9d71-544962735524")
+                        });
                 });
 
             modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.LabWorkStatus", b =>
@@ -106,6 +136,36 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("LabWorkStatuses");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("598dd563-f482-464a-930d-721a3a9d1649"),
+                            IsCompleted = false,
+                            LabWorkId = new Guid("75b503f5-2077-4ecb-afcc-8f83ce0951d0"),
+                            UserId = new Guid("87340bc4-d2cc-4061-841c-a421d6c2a7f0")
+                        },
+                        new
+                        {
+                            Id = new Guid("fc15ee48-ed1a-4155-9022-f1c3ba2b789a"),
+                            IsCompleted = false,
+                            LabWorkId = new Guid("dbc944fa-ee11-4302-b1e6-3ac0550a0491"),
+                            UserId = new Guid("87340bc4-d2cc-4061-841c-a421d6c2a7f0")
+                        },
+                        new
+                        {
+                            Id = new Guid("e8ace02d-e330-407d-b2ae-21256251bff3"),
+                            IsCompleted = false,
+                            LabWorkId = new Guid("b27784ae-fbd6-4f29-ba7f-e56256de2782"),
+                            UserId = new Guid("87340bc4-d2cc-4061-841c-a421d6c2a7f0")
+                        },
+                        new
+                        {
+                            Id = new Guid("f46af7e1-2abb-49a9-bc49-683ec1b3e4bb"),
+                            IsCompleted = false,
+                            LabWorkId = new Guid("81a353ba-8d2a-4e68-b8db-a9921bc39971"),
+                            UserId = new Guid("87340bc4-d2cc-4061-841c-a421d6c2a7f0")
+                        });
                 });
 
             modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.Role", b =>
@@ -125,17 +185,17 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("3814c6e4-5cca-4681-8bd5-998aef007642"),
+                            Id = new Guid("6cb0202b-2e70-4475-b574-4eca31f5c440"),
                             Name = "Student"
                         },
                         new
                         {
-                            Id = new Guid("2117f306-e39e-4544-b522-217d8b5b8a1c"),
+                            Id = new Guid("03f4c303-c131-4233-8297-a040fb67c220"),
                             Name = "Teacher"
                         },
                         new
                         {
-                            Id = new Guid("472e417a-2f85-4dc4-8028-da121e1746eb"),
+                            Id = new Guid("eb040d7a-ad98-4ab4-ab25-3d3e4edb46f0"),
                             Name = "Admin"
                         });
                 });
@@ -161,6 +221,15 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.HasIndex("GroupId");
 
                     b.ToTable("Subjects");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("3d697097-ffeb-45a5-9d71-544962735524"),
+                            GroupId = new Guid("03829da0-798c-4d92-a81c-6c854688df1e"),
+                            Name = "СУБД PostgreSQL",
+                            Semester = 0
+                        });
                 });
 
             modelBuilder.Entity("AcademicProgressTracker.Domain.Entities.User", b =>
@@ -198,43 +267,65 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("1529e062-f8d8-4d2f-aec8-e348b64080e0"),
+                            Id = new Guid("27c926f1-a755-484c-acd5-d4b9f573da6b"),
                             Email = "admin@mail.ru",
-                            PasswordHash = new byte[] { 151, 94, 212, 30, 156, 124, 74, 139, 34, 32, 189, 202, 11, 183, 225, 24, 8, 113, 196, 192, 12, 62, 11, 118, 148, 54, 70, 46, 82, 197, 191, 188, 37, 102, 234, 28, 202, 244, 206, 18, 255, 68, 228, 123, 106, 247, 114, 125, 37, 77, 102, 40, 211, 69, 130, 171, 231, 80, 243, 244, 30, 5, 180, 33 },
-                            PasswordSalt = new byte[] { 112, 221, 30, 81, 248, 138, 186, 222, 44, 229, 168, 82, 183, 117, 224, 36, 238, 92, 173, 195, 225, 239, 131, 34, 66, 34, 45, 120, 168, 110, 176, 53, 181, 207, 157, 216, 127, 1, 130, 115, 0, 186, 93, 154, 50, 3, 33, 32, 67, 128, 159, 217, 229, 129, 103, 91, 233, 158, 220, 254, 232, 149, 150, 236, 70, 27, 175, 29, 128, 21, 195, 48, 46, 116, 39, 219, 120, 21, 182, 110, 191, 198, 237, 92, 237, 199, 40, 161, 195, 15, 128, 26, 84, 231, 214, 87, 210, 76, 133, 168, 100, 250, 91, 123, 188, 245, 227, 29, 161, 168, 174, 87, 59, 13, 132, 201, 80, 45, 136, 45, 245, 82, 83, 163, 69, 45, 248, 30 },
+                            PasswordHash = new byte[] { 17, 236, 9, 208, 193, 27, 220, 20, 110, 104, 18, 56, 99, 249, 248, 116, 171, 149, 29, 176, 38, 27, 172, 201, 219, 208, 102, 247, 160, 49, 160, 51, 129, 84, 131, 9, 85, 98, 13, 192, 73, 232, 56, 52, 141, 231, 235, 246, 88, 89, 176, 233, 107, 202, 12, 195, 111, 63, 78, 174, 36, 83, 44, 53 },
+                            PasswordSalt = new byte[] { 88, 213, 49, 72, 245, 119, 99, 119, 227, 5, 1, 114, 78, 43, 140, 191, 244, 208, 104, 21, 133, 165, 34, 44, 91, 58, 195, 215, 30, 153, 199, 69, 179, 215, 231, 254, 216, 173, 9, 174, 236, 196, 146, 80, 205, 71, 154, 154, 76, 165, 83, 138, 5, 182, 43, 138, 65, 136, 165, 201, 255, 192, 127, 58, 225, 106, 90, 188, 35, 135, 116, 112, 251, 120, 62, 23, 51, 189, 60, 7, 15, 69, 125, 107, 128, 91, 115, 115, 138, 126, 56, 71, 199, 24, 103, 77, 232, 116, 43, 215, 180, 51, 147, 47, 36, 12, 26, 94, 105, 222, 67, 105, 247, 39, 203, 228, 73, 56, 39, 231, 16, 212, 149, 107, 38, 144, 64, 254 },
                             RefreshToken = "",
                             TokenCreated = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             TokenExpires = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
-                            Id = new Guid("7a729276-17cc-4f95-94c1-a4c5315b203f"),
+                            Id = new Guid("87340bc4-d2cc-4061-841c-a421d6c2a7f0"),
                             Email = "student@mail.ru",
-                            PasswordHash = new byte[] { 250, 187, 49, 188, 160, 77, 112, 103, 44, 48, 183, 48, 202, 65, 73, 119, 37, 172, 188, 107, 7, 230, 120, 34, 116, 12, 234, 28, 33, 227, 25, 197, 34, 89, 124, 98, 16, 81, 41, 2, 97, 242, 88, 215, 160, 75, 149, 27, 236, 136, 235, 76, 120, 156, 241, 98, 74, 102, 72, 10, 236, 164, 223, 146 },
-                            PasswordSalt = new byte[] { 5, 3, 170, 62, 125, 28, 167, 82, 94, 222, 10, 230, 140, 248, 68, 28, 28, 109, 105, 32, 112, 118, 232, 183, 152, 6, 204, 226, 255, 213, 46, 155, 13, 218, 15, 252, 30, 214, 144, 44, 239, 159, 3, 137, 170, 28, 138, 134, 158, 93, 205, 236, 152, 246, 124, 70, 238, 196, 31, 127, 51, 116, 40, 235, 10, 228, 167, 250, 100, 251, 14, 185, 235, 8, 139, 92, 85, 166, 100, 242, 192, 146, 113, 75, 48, 184, 169, 219, 93, 1, 250, 115, 106, 228, 44, 216, 183, 62, 16, 158, 189, 111, 224, 131, 120, 140, 74, 101, 220, 142, 150, 65, 183, 179, 201, 176, 26, 209, 142, 50, 16, 229, 9, 171, 114, 59, 188, 221 },
+                            PasswordHash = new byte[] { 21, 86, 160, 31, 176, 210, 122, 48, 100, 152, 192, 191, 111, 200, 233, 246, 78, 90, 67, 182, 184, 245, 12, 218, 23, 150, 115, 227, 28, 45, 42, 53, 103, 96, 255, 38, 97, 66, 196, 160, 213, 127, 8, 145, 19, 6, 197, 85, 57, 167, 93, 131, 149, 146, 9, 46, 173, 0, 92, 145, 162, 57, 219, 68 },
+                            PasswordSalt = new byte[] { 142, 74, 157, 30, 160, 18, 50, 173, 55, 203, 238, 35, 104, 68, 68, 83, 239, 95, 69, 19, 227, 110, 139, 10, 243, 134, 148, 6, 153, 69, 169, 87, 144, 218, 73, 208, 47, 42, 146, 252, 179, 17, 140, 25, 181, 188, 156, 153, 63, 108, 202, 225, 157, 120, 89, 175, 245, 71, 1, 167, 110, 240, 209, 199, 47, 254, 52, 98, 157, 143, 107, 204, 30, 78, 9, 135, 9, 183, 158, 212, 241, 18, 92, 154, 21, 0, 141, 255, 35, 226, 200, 165, 84, 133, 119, 61, 146, 251, 221, 144, 190, 207, 127, 140, 170, 196, 163, 76, 113, 41, 123, 29, 99, 169, 73, 18, 65, 173, 241, 154, 53, 110, 122, 191, 161, 223, 248, 232 },
                             RefreshToken = "",
                             TokenCreated = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             TokenExpires = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
-                            Id = new Guid("01179748-f8ab-4e8e-9406-953a16a28486"),
+                            Id = new Guid("1970342a-0249-45be-b3ea-901fd76cfeea"),
                             Email = "teacher@mail.ru",
-                            PasswordHash = new byte[] { 137, 42, 9, 21, 129, 3, 154, 50, 197, 212, 59, 13, 182, 151, 202, 39, 39, 99, 237, 89, 151, 38, 24, 124, 247, 176, 169, 55, 103, 191, 136, 157, 93, 108, 252, 127, 113, 85, 40, 33, 174, 194, 183, 199, 32, 115, 186, 239, 176, 202, 0, 85, 204, 218, 91, 95, 168, 188, 142, 141, 119, 34, 69, 229 },
-                            PasswordSalt = new byte[] { 93, 227, 166, 52, 14, 47, 106, 18, 95, 145, 191, 189, 114, 184, 162, 157, 167, 81, 135, 213, 35, 226, 105, 81, 29, 55, 146, 190, 171, 146, 254, 161, 5, 3, 243, 57, 177, 126, 77, 194, 82, 254, 222, 118, 77, 24, 44, 46, 163, 196, 87, 213, 119, 236, 75, 192, 52, 81, 158, 231, 75, 174, 9, 15, 49, 84, 251, 34, 104, 198, 246, 88, 132, 252, 247, 178, 66, 140, 222, 33, 214, 78, 103, 248, 14, 219, 37, 196, 167, 65, 146, 8, 53, 222, 98, 146, 184, 160, 146, 248, 10, 45, 120, 22, 165, 73, 249, 58, 155, 237, 133, 241, 33, 5, 134, 175, 124, 150, 57, 145, 96, 21, 156, 104, 217, 211, 210, 116 },
+                            PasswordHash = new byte[] { 79, 27, 230, 129, 186, 237, 67, 167, 95, 208, 185, 213, 152, 16, 102, 90, 135, 7, 204, 30, 111, 20, 187, 96, 49, 235, 32, 169, 35, 165, 26, 225, 148, 64, 11, 84, 188, 48, 231, 3, 86, 4, 18, 94, 85, 58, 186, 241, 208, 229, 42, 119, 242, 55, 75, 208, 98, 208, 132, 72, 143, 176, 205, 39 },
+                            PasswordSalt = new byte[] { 121, 12, 244, 245, 198, 192, 204, 213, 158, 230, 227, 138, 67, 21, 26, 243, 209, 136, 218, 72, 39, 61, 139, 31, 15, 178, 48, 93, 25, 114, 55, 85, 165, 190, 94, 108, 216, 4, 32, 52, 85, 122, 50, 7, 32, 240, 170, 198, 206, 214, 13, 76, 198, 127, 223, 149, 203, 229, 53, 107, 234, 8, 197, 93, 198, 40, 58, 190, 73, 109, 227, 106, 223, 150, 108, 135, 240, 137, 185, 72, 2, 147, 18, 136, 17, 152, 154, 210, 68, 160, 25, 102, 238, 177, 83, 124, 160, 111, 100, 49, 226, 241, 38, 29, 92, 202, 73, 8, 53, 188, 17, 55, 198, 172, 255, 208, 211, 171, 113, 191, 177, 241, 251, 112, 39, 252, 209, 181 },
                             RefreshToken = "",
                             TokenCreated = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             TokenExpires = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
-                            Id = new Guid("4da62e83-b06d-4a96-af7a-a4fb9f4a6987"),
+                            Id = new Guid("761c31e6-202f-420f-8ec3-0bb178544caa"),
                             Email = "teacherAdmin@mail.ru",
-                            PasswordHash = new byte[] { 34, 32, 34, 218, 153, 44, 191, 216, 245, 164, 177, 106, 91, 118, 172, 13, 84, 67, 4, 116, 159, 69, 235, 32, 164, 154, 220, 16, 187, 51, 63, 188, 22, 99, 199, 70, 133, 103, 205, 17, 150, 138, 246, 126, 116, 201, 164, 16, 30, 112, 93, 42, 86, 155, 17, 26, 75, 95, 93, 220, 71, 170, 99, 29 },
-                            PasswordSalt = new byte[] { 189, 12, 107, 62, 200, 77, 85, 224, 61, 172, 231, 158, 238, 236, 118, 153, 226, 124, 18, 237, 49, 161, 43, 128, 243, 234, 45, 163, 65, 38, 183, 133, 207, 31, 9, 246, 242, 183, 202, 6, 34, 128, 96, 68, 20, 52, 220, 153, 28, 226, 221, 61, 161, 91, 14, 120, 134, 98, 140, 248, 177, 120, 86, 80, 246, 160, 20, 140, 169, 240, 218, 87, 229, 37, 2, 43, 51, 26, 60, 128, 61, 164, 170, 192, 155, 217, 109, 47, 89, 148, 114, 153, 13, 45, 240, 64, 42, 163, 250, 250, 101, 104, 161, 250, 44, 22, 70, 177, 254, 16, 212, 189, 163, 148, 255, 140, 160, 240, 44, 202, 220, 186, 161, 4, 147, 38, 248, 109 },
+                            PasswordHash = new byte[] { 85, 97, 113, 99, 253, 6, 70, 174, 190, 38, 24, 84, 183, 180, 237, 12, 237, 122, 8, 141, 245, 35, 87, 223, 110, 123, 81, 230, 55, 111, 177, 175, 237, 179, 128, 86, 106, 131, 172, 168, 23, 249, 71, 46, 204, 50, 41, 144, 243, 85, 119, 248, 18, 137, 18, 161, 75, 111, 200, 189, 255, 151, 55, 12 },
+                            PasswordSalt = new byte[] { 219, 184, 145, 56, 70, 155, 236, 161, 249, 12, 52, 204, 130, 226, 138, 128, 99, 130, 44, 217, 136, 19, 57, 97, 215, 251, 55, 251, 59, 61, 57, 10, 60, 121, 38, 152, 202, 215, 77, 114, 219, 117, 65, 218, 62, 141, 215, 183, 7, 162, 235, 198, 201, 59, 141, 242, 192, 151, 78, 193, 164, 56, 186, 163, 135, 185, 20, 33, 59, 36, 35, 212, 158, 17, 203, 229, 52, 52, 144, 150, 45, 135, 95, 214, 211, 205, 220, 211, 180, 249, 67, 68, 139, 199, 132, 48, 22, 18, 122, 57, 119, 229, 236, 204, 220, 169, 84, 66, 158, 64, 5, 59, 216, 217, 92, 215, 72, 110, 214, 241, 120, 47, 139, 249, 182, 185, 194, 55 },
                             RefreshToken = "",
                             TokenCreated = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             TokenExpires = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
+                });
+
+            modelBuilder.Entity("AcademicProgressTracker.Persistence.Models.TeacherSubject", b =>
+                {
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("SubjectId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("TeacherSubject", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            SubjectId = new Guid("3d697097-ffeb-45a5-9d71-544962735524"),
+                            UserId = new Guid("1970342a-0249-45be-b3ea-901fd76cfeea")
                         });
                 });
 
@@ -261,31 +352,31 @@ namespace AcademicProgressTracker.Persistence.Migrations
 
                     b.HasIndex("UserId", "RoleId")
                         .IsUnique()
-                        .HasFilter("\"RoleId\" = '3814c6e4-5cca-4681-8bd5-998aef007642'");
+                        .HasFilter("\"RoleId\" = '6cb0202b-2e70-4475-b574-4eca31f5c440'");
 
                     b.ToTable("UserGroup");
 
                     b.HasData(
                         new
                         {
-                            Id = new Guid("56abbbde-3e74-41be-93e5-e81fdf815129"),
-                            GroupId = new Guid("62264dfc-8eab-43f2-bffd-a4f165b4dace"),
-                            RoleId = new Guid("3814c6e4-5cca-4681-8bd5-998aef007642"),
-                            UserId = new Guid("7a729276-17cc-4f95-94c1-a4c5315b203f")
+                            Id = new Guid("d80cf5b2-b858-410f-8028-a5a32b93b1be"),
+                            GroupId = new Guid("03829da0-798c-4d92-a81c-6c854688df1e"),
+                            RoleId = new Guid("6cb0202b-2e70-4475-b574-4eca31f5c440"),
+                            UserId = new Guid("87340bc4-d2cc-4061-841c-a421d6c2a7f0")
                         },
                         new
                         {
-                            Id = new Guid("53b3f9a7-1223-4055-9970-5837667b2704"),
-                            GroupId = new Guid("8e5a260d-1a98-4d0c-9683-75a418b1b560"),
-                            RoleId = new Guid("2117f306-e39e-4544-b522-217d8b5b8a1c"),
-                            UserId = new Guid("01179748-f8ab-4e8e-9406-953a16a28486")
+                            Id = new Guid("90440bae-b30c-43c3-ab6a-336e7c2e3737"),
+                            GroupId = new Guid("3b91b3b9-fafe-4986-a7f3-c1e09025e569"),
+                            RoleId = new Guid("03f4c303-c131-4233-8297-a040fb67c220"),
+                            UserId = new Guid("1970342a-0249-45be-b3ea-901fd76cfeea")
                         },
                         new
                         {
-                            Id = new Guid("14d30da8-386d-49f1-bc51-6ddccafe541d"),
-                            GroupId = new Guid("62264dfc-8eab-43f2-bffd-a4f165b4dace"),
-                            RoleId = new Guid("2117f306-e39e-4544-b522-217d8b5b8a1c"),
-                            UserId = new Guid("01179748-f8ab-4e8e-9406-953a16a28486")
+                            Id = new Guid("2b3aaf23-8968-473c-a7b9-71ab5110bbc2"),
+                            GroupId = new Guid("03829da0-798c-4d92-a81c-6c854688df1e"),
+                            RoleId = new Guid("03f4c303-c131-4233-8297-a040fb67c220"),
+                            UserId = new Guid("1970342a-0249-45be-b3ea-901fd76cfeea")
                         });
                 });
 
@@ -306,28 +397,28 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            RoleId = new Guid("472e417a-2f85-4dc4-8028-da121e1746eb"),
-                            UserId = new Guid("1529e062-f8d8-4d2f-aec8-e348b64080e0")
+                            RoleId = new Guid("eb040d7a-ad98-4ab4-ab25-3d3e4edb46f0"),
+                            UserId = new Guid("27c926f1-a755-484c-acd5-d4b9f573da6b")
                         },
                         new
                         {
-                            RoleId = new Guid("3814c6e4-5cca-4681-8bd5-998aef007642"),
-                            UserId = new Guid("7a729276-17cc-4f95-94c1-a4c5315b203f")
+                            RoleId = new Guid("6cb0202b-2e70-4475-b574-4eca31f5c440"),
+                            UserId = new Guid("87340bc4-d2cc-4061-841c-a421d6c2a7f0")
                         },
                         new
                         {
-                            RoleId = new Guid("2117f306-e39e-4544-b522-217d8b5b8a1c"),
-                            UserId = new Guid("01179748-f8ab-4e8e-9406-953a16a28486")
+                            RoleId = new Guid("03f4c303-c131-4233-8297-a040fb67c220"),
+                            UserId = new Guid("1970342a-0249-45be-b3ea-901fd76cfeea")
                         },
                         new
                         {
-                            RoleId = new Guid("2117f306-e39e-4544-b522-217d8b5b8a1c"),
-                            UserId = new Guid("4da62e83-b06d-4a96-af7a-a4fb9f4a6987")
+                            RoleId = new Guid("03f4c303-c131-4233-8297-a040fb67c220"),
+                            UserId = new Guid("761c31e6-202f-420f-8ec3-0bb178544caa")
                         },
                         new
                         {
-                            RoleId = new Guid("472e417a-2f85-4dc4-8028-da121e1746eb"),
-                            UserId = new Guid("4da62e83-b06d-4a96-af7a-a4fb9f4a6987")
+                            RoleId = new Guid("eb040d7a-ad98-4ab4-ab25-3d3e4edb46f0"),
+                            UserId = new Guid("761c31e6-202f-420f-8ec3-0bb178544caa")
                         });
                 });
 
@@ -370,6 +461,25 @@ namespace AcademicProgressTracker.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("AcademicProgressTracker.Persistence.Models.TeacherSubject", b =>
+                {
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.Subject", "Subject")
+                        .WithMany()
+                        .HasForeignKey("SubjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AcademicProgressTracker.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subject");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("AcademicProgressTracker.Persistence.Models.UserGroup", b =>

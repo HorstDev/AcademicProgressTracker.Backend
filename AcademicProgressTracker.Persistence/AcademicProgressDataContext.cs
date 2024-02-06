@@ -5,6 +5,7 @@ using AcademicProgressTracker.Domain.Entities;
 using AcademicProgressTracker.Persistence.EntityTypeConfigurations;
 using AcademicProgressTracker.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using System.Reflection.Emit;
 
 namespace AcademicProgressTracker.Persistence
@@ -15,6 +16,7 @@ namespace AcademicProgressTracker.Persistence
         public DbSet<Role> Roles { get; set; }
         public DbSet<UserGroup> UserGroup { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<TeacherSubject> TeacherSubject { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<LabWork> LabWorks { get; set; }
@@ -32,6 +34,9 @@ namespace AcademicProgressTracker.Persistence
             var roles = GetRoles();
             var users = GetUsers();
             var groups = GetGroups();
+            var subjects = GetSubjects(groups);
+            var labworks = GetLabWorks(subjects);
+            var labworkstatuses = GetLabWorkStatuses(labworks, users);
 
             // Применяем конфигурации
             modelBuilder.ApplyConfiguration(new UserConfiguration());
@@ -40,9 +45,55 @@ namespace AcademicProgressTracker.Persistence
             // Устанавливаем данные
             CreateUsersAndRoles(modelBuilder, users, roles);
             CreateGroupsAndRelations(modelBuilder, users, roles, groups);
+            CreateTeacherAndSubjectRelations(modelBuilder, users, subjects);
+            modelBuilder.Entity<LabWork>().HasData(labworks);
+            modelBuilder.Entity<LabWorkStatus>().HasData(labworkstatuses);
 
             modelBuilder.UseSerialColumns();
             base.OnModelCreating(modelBuilder);
+        }
+
+        private LabWorkStatus[] GetLabWorkStatuses(LabWork[] labworks, User[] users)
+        {
+            return new LabWorkStatus[]
+            {
+                new LabWorkStatus { Id = Guid.NewGuid(), IsCompleted = false, LabWorkId = labworks.Single(x => x.Number == 1).Id, UserId = users.Single(x => x.Email == "student@mail.ru").Id },
+                new LabWorkStatus { Id = Guid.NewGuid(), IsCompleted = false, LabWorkId = labworks.Single(x => x.Number == 2).Id, UserId = users.Single(x => x.Email == "student@mail.ru").Id },
+                new LabWorkStatus { Id = Guid.NewGuid(), IsCompleted = false, LabWorkId = labworks.Single(x => x.Number == 3).Id, UserId = users.Single(x => x.Email == "student@mail.ru").Id },
+                new LabWorkStatus { Id = Guid.NewGuid(), IsCompleted = false, LabWorkId = labworks.Single(x => x.Number == 4).Id, UserId = users.Single(x => x.Email == "student@mail.ru").Id },
+            };
+        }
+
+        private LabWork[] GetLabWorks(Subject[] subjects)
+        {
+            return new LabWork[]
+            {
+                new LabWork { Id = Guid.NewGuid(), Number = 1, MaximumScore = 10, SubjectId = subjects.Single(x => x.Name == "СУБД PostgreSQL").Id },
+                new LabWork { Id = Guid.NewGuid(), Number = 2, MaximumScore = 10, SubjectId = subjects.Single(x => x.Name == "СУБД PostgreSQL").Id },
+                new LabWork { Id = Guid.NewGuid(), Number = 3, MaximumScore = 10, SubjectId = subjects.Single(x => x.Name == "СУБД PostgreSQL").Id },
+                new LabWork { Id = Guid.NewGuid(), Number = 4, MaximumScore = 10, SubjectId = subjects.Single(x => x.Name == "СУБД PostgreSQL").Id },
+            };
+        }
+
+        private void CreateTeacherAndSubjectRelations(ModelBuilder modelBuilder, User[] users, Subject[] subjects)
+        {
+            modelBuilder.Entity<Subject>().HasData(subjects);
+            modelBuilder.Entity<TeacherSubject>().HasData(
+                    new TeacherSubject
+                    {
+                        UserId = users.Single(x => x.Email == "teacher@mail.ru").Id,
+                        SubjectId = subjects.Single(x => x.Name == "СУБД PostgreSQL").Id
+                    }
+                );
+        }
+
+        private Subject[] GetSubjects(Group[] groups)
+        {
+            return new Subject[]
+            {
+                new Subject { Id = Guid.NewGuid(), Name = "СУБД PostgreSQL", GroupId = groups.First(x => x.Name == "ДИПРБ" && x.Course == 4).Id},
+            };
+
         }
 
         private void CreateGroupsAndRelations(ModelBuilder modelBuilder, User[] users, Role[] roles, Group[] groups)
