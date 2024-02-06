@@ -11,6 +11,7 @@
         public DateTime TokenExpires { get; set; }
 
         public List<Role> Roles { get; set; } = new();
+        public List<Subject> Subjects { get; set; } = new();
 
         public bool TokenExpired()
         {
