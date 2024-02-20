@@ -19,6 +19,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
             _httpClient = httpClient;
         }
 
+        // Загрузка учебного плана для созданной ранее группы
         [HttpPost("{groupId}/uploadСurriculum")]
         public async Task<ActionResult> UploadСurriculum(Guid groupId, IFormFile excelCurriculum)
         {
@@ -40,11 +41,26 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return BadRequest("Ошибка. Файл пуст.");
         }
 
+        // Создание группы (название берется с сервера АГТУ)
         [HttpPost("{groupName}")]
         public async Task<ActionResult> UploadGroupWithTeachersAndSubjects(string groupName)
         {
-            var response = await _httpClient.GetAsync("https://apitable.astu.org/search/get?q=ДИПРБ_11/1&t=group");
-            var groupLessonsDTO = response.Content.ReadFromJsonAsync<GroupWithLessonsDTO>();
+            var response = await _httpClient.GetAsync("https://apitable.astu.org/search/get?q=ДИПРБ_41/1&t=group");
+            var groupLessonsDTO = await response.Content.ReadFromJsonAsync<GroupWithLessonsDTO>();
+
+            if (groupLessonsDTO != null)
+            {
+                var teachersAndSubjects = groupLessonsDTO.Lessons
+                    .SelectMany(lesson => lesson.Entries)                       // выбираем все записи (entries) из всех занятий
+                    .Select(entry => new { entry.Teacher, entry.Discipline })   // выбираем из всех записей учителя и соответствующую ему дисциплину
+                    .Distinct()                                                 // убираем все повторения (чтобы не было одинаковых записей "преподаватель - дисциплина")
+                    .ToList();
+
+                //var uniqueTeacherDisciplineCombinations = groupLessonsDTO.Lessons
+                //    .SelectMany(lesson => lesson.Entries);
+                    //.Select(entry => new { Teacher = entry.Teacher, Discipline = entry.Discipline })
+                    //.Distinct();
+            }
 
             return Ok();
         }
