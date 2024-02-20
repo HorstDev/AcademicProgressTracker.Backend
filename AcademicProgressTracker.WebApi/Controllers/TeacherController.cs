@@ -27,6 +27,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
         public async Task<IEnumerable<GroupViewModel>> GetMyGroups()
         {
             var teacherId = new Guid(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            // ТУТ ОШИБКА!! НАДО ЕЩЕ ПРОВЕРИТЬ, ЧТОБЫ РОЛЬ БЫЛА TEACHER
             var groups = await _dataContext.UserGroup
                 .Where(x => x.UserId == teacherId)
                 .Select(x => x.Group)

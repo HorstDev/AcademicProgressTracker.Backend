@@ -41,6 +41,12 @@ namespace AcademicProgressTracker.Persistence
             // Применяем конфигурации
             modelBuilder.ApplyConfiguration(new UserConfiguration());
             modelBuilder.ApplyConfiguration(new UserGroupConfiguration(roles.Single(x => x.Name == "Student").Id));
+            modelBuilder.Entity<LabWorkStatus>()
+                .Property(x => x.CurrentScore)
+                .HasColumnType("numeric(18, 2)");
+            modelBuilder.Entity<LabWork>()
+                .Property(x => x.MaximumScore)
+                .HasColumnType("numeric(18, 2)");
 
             // Устанавливаем данные
             CreateUsersAndRoles(modelBuilder, users, roles);
