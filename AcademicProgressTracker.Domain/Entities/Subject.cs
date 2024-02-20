@@ -8,5 +8,6 @@
 
         public Guid GroupId { get; set; }
         public Group? Group { get; set; }
+        public List<User> Users { get; set; } = new();
     }
 }
