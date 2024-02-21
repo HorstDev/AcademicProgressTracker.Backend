@@ -21,6 +21,7 @@ namespace AcademicProgressTracker.Persistence
         public DbSet<Subject> Subjects { get; set; }
         public DbSet<LabWork> LabWorks { get; set; }
         public DbSet<LabWorkStatus> LabWorkStatuses { get; set; }
+        public DbSet<SubjectMapping> SubjectMappings { get; set; }
 
         public AcademicProgressDataContext(DbContextOptions<AcademicProgressDataContext> options) 
             : base(options)
@@ -37,6 +38,7 @@ namespace AcademicProgressTracker.Persistence
             var subjects = GetSubjects(groups);
             var labworks = GetLabWorks(subjects);
             var labworkstatuses = GetLabWorkStatuses(labworks, users);
+            var subjectMappings = GetSubjectMappings();
 
             // Применяем конфигурации
             modelBuilder.ApplyConfiguration(new UserConfiguration());
@@ -54,9 +56,24 @@ namespace AcademicProgressTracker.Persistence
             CreateTeacherAndSubjectRelations(modelBuilder, users, subjects);
             modelBuilder.Entity<LabWork>().HasData(labworks);
             modelBuilder.Entity<LabWorkStatus>().HasData(labworkstatuses);
+            modelBuilder.Entity<SubjectMapping>().HasData(subjectMappings);
 
             modelBuilder.UseSerialColumns();
             base.OnModelCreating(modelBuilder);
+        }
+
+        private SubjectMapping[] GetSubjectMappings()
+        {
+            return new SubjectMapping[]
+            {
+                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "История россии", SubjectNameCurriculum = "История России" },
+                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Управление программными проектами", SubjectNameCurriculum = "Управление программными проектами" },
+                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Самостоятельная работа студента", SubjectNameCurriculum = null },
+                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Экономика программной инженерии", SubjectNameCurriculum = "Экономика программной инженерии" },
+                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Микропроцессорные системы", SubjectNameCurriculum = "Микропроцессорные системы" },
+                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Сопровождение программного обеспечения", SubjectNameCurriculum = "Сопровождение программного обеспечения" },
+                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Математический аhализ", SubjectNameCurriculum = "Математический анализ" },
+            };
         }
 
         private LabWorkStatus[] GetLabWorkStatuses(LabWork[] labworks, User[] users)
