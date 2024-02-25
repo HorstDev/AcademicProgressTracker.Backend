@@ -54,10 +54,10 @@ namespace AcademicProgressTracker.WebApi.Controllers
 
             // Передаем в сервис labWorkStatusVm
 
-            var labWorkStatus = _dataContext.LabWorkStatuses
+            var labWorkStatus = await _dataContext.LabWorkStatuses
                 .Include(x => x.LabWork)
                 .Include(x => x.User)
-                .Single(x => x.Id == labWorkStatusVm.Id);
+                .SingleAsync(x => x.Id == labWorkStatusVm.Id);
 
             if (labWorkStatusVm.CurrentScore <= labWorkStatus.LabWork!.MaximumScore && labWorkStatusVm.CurrentScore > 0)
             {
@@ -76,10 +76,10 @@ namespace AcademicProgressTracker.WebApi.Controllers
         [HttpPut("make-lab-not-completed/{labWorkStatusId}")]
         public async Task<ActionResult<LabWorkStatusViewModel>> MakeLabNotDone(Guid labWorkStatusId)
         {
-            var labWorkStatus = _dataContext.LabWorkStatuses
+            var labWorkStatus = await _dataContext.LabWorkStatuses
                 .Include(x => x.LabWork)
                 .Include(x => x.User)
-                .Single(x => x.Id == labWorkStatusId);
+                .SingleAsync(x => x.Id == labWorkStatusId);
 
             labWorkStatus.IsCompleted = false;
             labWorkStatus.CurrentScore = 0;

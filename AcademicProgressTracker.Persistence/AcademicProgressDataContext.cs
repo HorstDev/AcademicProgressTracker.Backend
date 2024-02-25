@@ -73,6 +73,14 @@ namespace AcademicProgressTracker.Persistence
                 new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Микропроцессорные системы", SubjectNameCurriculum = "Микропроцессорные системы" },
                 new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Сопровождение программного обеспечения", SubjectNameCurriculum = "Сопровождение программного обеспечения" },
                 new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Математический аhализ", SubjectNameCurriculum = "Математический анализ" },
+
+                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Проектирование человеко-машинного интерфейса", SubjectNameCurriculum = "Проектирование человеко-машинного интерфейса" },
+                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Разработка и анализ требований , конструирование программного обеспечения", SubjectNameCurriculum = "Разработка и анализ требований, конструирование программного обеспечения" },
+                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Теория принятия решений", SubjectNameCurriculum = "Теория принятия решений" },
+                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Разработка приложений asp.net", SubjectNameCurriculum = "Разработка приложений ASP.NET" },
+                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Субд postgresql", SubjectNameCurriculum = "СУБД PostgreSQL" },
+                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Элективные дисциплины по физической культуре и спорту", SubjectNameCurriculum = "Элективные дисциплины по физической культуре и спорту" },
+                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Тестирование программного обеспечения", SubjectNameCurriculum = "Тестирование программного обеспечения" },
             };
         }
 

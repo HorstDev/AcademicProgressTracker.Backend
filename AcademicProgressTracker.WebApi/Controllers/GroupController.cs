@@ -1,9 +1,9 @@
 ﻿using AcademicProgressTracker.Application.Common.DTOs;
+using AcademicProgressTracker.Application.Curriculum;
 using AcademicProgressTracker.Domain.Entities;
 using AcademicProgressTracker.Persistence;
 using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Microsoft.EntityFrameworkCore;
 
 namespace AcademicProgressTracker.WebApi.Controllers
 {
@@ -24,7 +24,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
         [HttpPost("{groupName}")]
         public async Task<ActionResult> Create(string groupName, IFormFile excelCurriculum)
         {
-            var group = new Group { Name = groupName };
+            var group = new Group { Name = Uri.UnescapeDataString(groupName) };
 
             // P.S. НАДО БУДЕТ ДОБАВИТЬ УНИКАЛЬНОСТЬ В КОНФИГУРАЦИИ БД ДЛЯ НАЗВАНИЯ ГРУППЫ ИНАЧЕ ПЛОХО
             if (excelCurriculum != null && excelCurriculum.Length > 0)
@@ -44,11 +44,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
         }
 
         // Загрузка зависимостей для группы (учителя и дисциплины)
-        [HttpPost("{groupName}/UploadDependencies")]
-        public async Task<ActionResult> UploadTeachersAndSubjects(string groupName)
+        [HttpPost("{groupId}/UploadDependencies")]
+        public async Task<ActionResult> UploadTeachersAndSubjects(Guid groupId)
         {
-            var group = _dataContext.Groups.Single(x => x.Name == groupName);
-            var response = await _httpClient.GetAsync("https://apitable.astu.org/search/get?q=ДИПРБ_41/1&t=group");
+            var group = await _dataContext.Groups.SingleAsync(x => x.Id == groupId);
+            var response = await _httpClient.GetAsync($"https://apitable.astu.org/search/get?q={group.Name}&t=group");
             var groupLessonsDTO = await response.Content.ReadFromJsonAsync<GroupWithLessonsDTO>();
 
             if (groupLessonsDTO != null)
@@ -56,8 +56,12 @@ namespace AcademicProgressTracker.WebApi.Controllers
                 // Выбираем преподавателей и соответствующие им дисциплины
                 var teachersAndSubjects = groupLessonsDTO.Lessons
                     .SelectMany(lesson => lesson.Entries)                       // выбираем все записи (entries) из всех занятий
-                    .Select(entry => new EntryDTO { Teacher = entry.Teacher, Discipline = entry.Discipline })   // выбираем из всех записей учителя и соответствующую ему дисциплину
+                    .Select(entry => new { entry.Teacher, entry.Discipline })   // выбираем из всех записей учителя и соответствующую ему дисциплину
                     .Distinct()                                                 // убираем все повторения (чтобы не было одинаковых записей "преподаватель - дисциплина")
+                    .ToList();
+
+                var teachersInApiTable = teachersAndSubjects
+                    .Select(entry => entry.Teacher)
                     .ToList();
 
                 // Выбираем дисциплины из api table
@@ -66,10 +70,24 @@ namespace AcademicProgressTracker.WebApi.Controllers
                     .ToList();
 
                 // Выбираем названия дисциплин, которые соответствуют дисциплинам из api table из БД (если дисциплина == null, то ее не выбираем, так как ее нет в учебном плане)
-                var subjectInCurriculum = _dataContext.SubjectMappings
+                var subjectsInCurriculum = await _dataContext.SubjectMappings
                     .Where(x => subjectsInApiTable.Contains(x.SubjectNameApiTable) && x.SubjectNameCurriculum != null)
                     .Select(x => x.SubjectNameCurriculum)
-                    .ToList();
+                    .ToListAsync();
+
+                // ТУТ СОЗДАНИЕ УЧИТЕЛЕЙ, ПРЕДМЕТОВ, СВЯЗЕЙ МЕЖДУ НИМИ И ТД, ПОТОМ УЖЕ ИЩЕМ СЕМЕСТР И ЧАСЫ И ПРИСВАИВАЕМ ЕГО ВСЕМ ПРЕДМЕТАМ
+                // -------------
+
+                // -------------
+
+                // P.S. В БУДУЩЕМ НА ВСЯКИЙ ПОМЕНЯТЬ У ГРУППЫ ДОКУМЕНТ НА NOT NULL, ЩАС СДЕЛАТЬ НЕЛЬЗЯ ПОТОМУ ЧТО В ДАТАСИДЕ ЕСТЬ ГРУППЫ С NULL ДОКУМЕНТОМ
+                var curriculumAnalyzer = new CurriculumAnalyzer(group.CurriculumExcelDocument);
+                int commonSemester = curriculumAnalyzer.GetCommonSemesterForSubjects(subjectsInCurriculum!);
+
+                foreach (var subject in subjectsInCurriculum)
+                {
+                    int numberOfLaboratoryLesson = curriculumAnalyzer.GetNumberOfLaboratoryLesson(subject!, commonSemester);
+                }
             }
 
             return Ok();
