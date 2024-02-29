@@ -5,9 +5,10 @@
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public int Semester { get; set; }
+        public int LabLessonCount { get; set; }
 
         public Guid GroupId { get; set; }
         public Group? Group { get; set; }
-        public List<User> Users { get; set; } = new();
+        public ICollection<User> Users { get; set; } = new List<User>();
     }
 }

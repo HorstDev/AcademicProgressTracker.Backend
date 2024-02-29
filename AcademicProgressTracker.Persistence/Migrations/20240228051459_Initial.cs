@@ -19,8 +19,7 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Course = table.Column<int>(type: "integer", nullable: false),
-                    YearCreated = table.Column<int>(type: "integer", nullable: false)
+                    CurriculumExcelDocument = table.Column<byte[]>(type: "bytea", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -40,6 +39,19 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SubjectMappings",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    SubjectNameApiTable = table.Column<string>(type: "text", nullable: false),
+                    SubjectNameCurriculum = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SubjectMappings", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
@@ -47,7 +59,7 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     Email = table.Column<string>(type: "text", nullable: false),
                     PasswordHash = table.Column<byte[]>(type: "bytea", nullable: false),
                     PasswordSalt = table.Column<byte[]>(type: "bytea", nullable: false),
-                    RefreshToken = table.Column<string>(type: "text", nullable: false),
+                    RefreshToken = table.Column<string>(type: "text", nullable: true),
                     TokenCreated = table.Column<DateTime>(type: "timestamp without time zone", nullable: false),
                     TokenExpires = table.Column<DateTime>(type: "timestamp without time zone", nullable: false)
                 },
@@ -63,6 +75,7 @@ namespace AcademicProgressTracker.Persistence.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Semester = table.Column<int>(type: "integer", nullable: false),
+                    LabLessonCount = table.Column<int>(type: "integer", nullable: false),
                     GroupId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -72,6 +85,26 @@ namespace AcademicProgressTracker.Persistence.Migrations
                         name: "FK_Subjects_Groups_GroupId",
                         column: x => x.GroupId,
                         principalTable: "Groups",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Profiles",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Discriminator = table.Column<string>(type: "character varying(21)", maxLength: 21, nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Profiles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Profiles_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -138,7 +171,7 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Number = table.Column<int>(type: "integer", nullable: false),
-                    MaximumScore = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    MaximumScore = table.Column<decimal>(type: "numeric", nullable: false),
                     SubjectId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -182,7 +215,7 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     IsCompleted = table.Column<bool>(type: "boolean", nullable: false),
-                    CurrentScore = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
+                    CurrentScore = table.Column<decimal>(type: "numeric", nullable: false),
                     LabWorkId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
@@ -204,22 +237,34 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "Groups",
-                columns: new[] { "Id", "Course", "Name", "YearCreated" },
-                values: new object[,]
-                {
-                    { new Guid("95724443-5363-4c20-a262-da380d468e55"), 4, "ДИПРБ", 2020 },
-                    { new Guid("e8d0f771-d165-45c7-8f01-18c7ed92361b"), 4, "ДИИЭБ", 2020 }
-                });
-
-            migrationBuilder.InsertData(
                 table: "Roles",
                 columns: new[] { "Id", "Name" },
                 values: new object[,]
                 {
-                    { new Guid("2476f1d7-44f6-4600-8f43-7bd0d0d94c13"), "Teacher" },
-                    { new Guid("8858a359-c8cd-41c0-a5c8-351262ea7cb6"), "Student" },
-                    { new Guid("8d6833f3-7a48-4397-84fd-8241e160324e"), "Admin" }
+                    { new Guid("256319a4-e6b0-47e7-b30d-f3226c63dad3"), "Student" },
+                    { new Guid("c79e7d56-da96-4387-adf1-9e745422f8b0"), "Teacher" },
+                    { new Guid("e1e09171-2eb6-4537-b291-e4c7a871d1c8"), "Admin" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "SubjectMappings",
+                columns: new[] { "Id", "SubjectNameApiTable", "SubjectNameCurriculum" },
+                values: new object[,]
+                {
+                    { new Guid("03ba6e18-d63f-42c2-ae1a-c640436202ad"), "Сопровождение программного обеспечения", "Сопровождение программного обеспечения" },
+                    { new Guid("0627a775-0b3e-488c-bbbd-4f958f258a6c"), "Разработка и анализ требований , конструирование программного обеспечения", "Разработка и анализ требований, конструирование программного обеспечения" },
+                    { new Guid("0c791647-2060-47e5-9cce-4e63d47ee573"), "История россии", "История России" },
+                    { new Guid("3663b5d5-2ad6-493d-955c-b7f918a557bd"), "Самостоятельная работа студента", null },
+                    { new Guid("3d9a7907-6530-43b0-8885-36ec7f0a565c"), "Математический аhализ", "Математический анализ" },
+                    { new Guid("450a54a8-8f4d-4f39-bde4-db09617aa0c8"), "Теория принятия решений", "Теория принятия решений" },
+                    { new Guid("529022d5-d924-4bed-8fd6-51207428901f"), "Тестирование программного обеспечения", "Тестирование программного обеспечения" },
+                    { new Guid("8c6313d7-fd0e-4350-9889-a54e048c7b1e"), "Управление программными проектами", "Управление программными проектами" },
+                    { new Guid("a8a0073c-e129-4d29-a49f-fc9a35d95114"), "Микропроцессорные системы", "Микропроцессорные системы" },
+                    { new Guid("b8508ac4-86b9-4b3b-aa5c-4020c317f840"), "Разработка приложений asp.net", "Разработка приложений ASP.NET" },
+                    { new Guid("cf2b0a4e-59db-4c03-b502-eeeffe2c2125"), "Элективные дисциплины по физической культуре и спорту", "Элективные дисциплины по физической культуре и спорту" },
+                    { new Guid("d1ff733d-54c1-406e-ae41-40e1ef38d5c7"), "Проектирование человеко-машинного интерфейса", "Проектирование человеко-машинного интерфейса" },
+                    { new Guid("ea651618-bdae-4e2d-a41d-0b6cd205a9e6"), "Экономика программной инженерии", "Экономика программной инженерии" },
+                    { new Guid("efee1981-65cc-40b0-983e-1b1f676134aa"), "Субд postgresql", "СУБД PostgreSQL" }
                 });
 
             migrationBuilder.InsertData(
@@ -227,25 +272,10 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 columns: new[] { "Id", "Email", "PasswordHash", "PasswordSalt", "RefreshToken", "TokenCreated", "TokenExpires" },
                 values: new object[,]
                 {
-                    { new Guid("5cc3730e-0156-4222-aec2-047c10143f2e"), "student@mail.ru", new byte[] { 54, 244, 32, 176, 192, 126, 249, 183, 59, 144, 0, 198, 34, 88, 165, 9, 240, 162, 89, 158, 250, 87, 178, 106, 170, 210, 40, 115, 155, 79, 166, 72, 141, 228, 182, 128, 113, 180, 253, 14, 196, 20, 221, 55, 210, 136, 92, 179, 76, 72, 8, 31, 191, 17, 111, 50, 68, 30, 128, 5, 82, 9, 127, 92 }, new byte[] { 162, 6, 43, 204, 19, 222, 67, 56, 233, 25, 220, 80, 32, 181, 130, 124, 252, 113, 37, 3, 209, 202, 89, 147, 217, 93, 49, 20, 147, 176, 178, 85, 139, 254, 244, 226, 132, 100, 89, 129, 46, 167, 209, 114, 118, 52, 159, 170, 22, 174, 158, 120, 29, 63, 1, 250, 246, 94, 5, 237, 78, 109, 219, 80, 20, 4, 52, 253, 172, 154, 25, 56, 37, 238, 175, 20, 172, 124, 222, 148, 38, 0, 209, 119, 103, 247, 22, 52, 104, 223, 142, 252, 95, 91, 51, 34, 187, 110, 69, 38, 16, 134, 161, 124, 57, 19, 17, 17, 69, 234, 68, 225, 186, 175, 56, 43, 78, 78, 11, 34, 12, 188, 231, 118, 133, 251, 212, 45 }, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
-                    { new Guid("92662ddd-621c-49b8-9e59-9b8cfdc93dce"), "teacher@mail.ru", new byte[] { 254, 18, 255, 204, 97, 87, 247, 85, 174, 40, 123, 16, 44, 204, 33, 93, 92, 41, 100, 128, 255, 234, 105, 182, 8, 154, 233, 87, 252, 36, 87, 222, 62, 203, 205, 249, 64, 106, 238, 70, 183, 96, 167, 41, 88, 96, 243, 145, 74, 138, 126, 28, 156, 18, 32, 69, 132, 200, 20, 101, 162, 171, 197, 107 }, new byte[] { 11, 16, 172, 38, 227, 10, 48, 202, 91, 204, 120, 229, 65, 212, 126, 124, 225, 166, 231, 255, 24, 155, 249, 108, 79, 185, 4, 144, 231, 12, 82, 24, 213, 202, 48, 169, 206, 93, 79, 171, 123, 197, 221, 216, 215, 194, 58, 101, 146, 189, 204, 76, 148, 232, 156, 157, 116, 185, 84, 223, 196, 219, 131, 95, 181, 72, 129, 239, 16, 230, 181, 255, 173, 63, 90, 132, 215, 145, 196, 104, 11, 239, 99, 31, 9, 85, 246, 89, 178, 240, 136, 36, 3, 218, 49, 219, 40, 156, 43, 134, 87, 113, 87, 78, 50, 54, 77, 172, 176, 29, 111, 3, 189, 169, 3, 214, 160, 172, 128, 173, 38, 62, 182, 11, 29, 254, 50, 220 }, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
-                    { new Guid("d3f6db69-f2f1-45dc-88c6-02b6189866e1"), "teacherAdmin@mail.ru", new byte[] { 215, 169, 96, 116, 17, 146, 197, 122, 83, 119, 214, 16, 104, 230, 36, 65, 10, 76, 112, 74, 211, 149, 127, 217, 204, 49, 149, 79, 128, 180, 105, 52, 4, 86, 96, 122, 66, 32, 104, 138, 80, 234, 137, 213, 93, 110, 246, 41, 194, 119, 191, 250, 193, 115, 223, 225, 16, 114, 146, 164, 187, 129, 56, 108 }, new byte[] { 23, 25, 245, 28, 114, 191, 48, 51, 82, 234, 51, 77, 76, 248, 234, 191, 169, 206, 82, 68, 224, 230, 49, 184, 217, 147, 89, 195, 201, 240, 74, 88, 5, 123, 35, 50, 47, 98, 15, 33, 238, 113, 133, 205, 196, 27, 225, 189, 186, 203, 92, 85, 133, 166, 102, 202, 103, 114, 236, 109, 23, 185, 220, 249, 99, 237, 93, 233, 150, 235, 128, 228, 225, 11, 165, 230, 99, 14, 181, 172, 1, 20, 73, 251, 182, 21, 99, 77, 214, 59, 159, 186, 19, 56, 234, 144, 30, 242, 113, 64, 44, 115, 23, 11, 237, 210, 242, 231, 64, 38, 92, 199, 54, 250, 58, 163, 92, 87, 220, 241, 236, 9, 165, 183, 67, 249, 205, 53 }, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
-                    { new Guid("dcb54be9-9121-42bc-a3f5-57823b133027"), "admin@mail.ru", new byte[] { 9, 56, 7, 7, 169, 242, 179, 42, 84, 36, 225, 240, 138, 187, 160, 5, 55, 186, 217, 226, 12, 55, 141, 82, 86, 208, 58, 196, 157, 161, 244, 195, 121, 248, 60, 253, 183, 107, 65, 126, 189, 151, 232, 18, 74, 53, 144, 93, 204, 35, 132, 114, 91, 250, 138, 223, 91, 54, 156, 172, 74, 95, 75, 45 }, new byte[] { 132, 87, 226, 86, 91, 246, 221, 197, 109, 30, 204, 197, 107, 20, 222, 32, 85, 3, 30, 228, 108, 228, 82, 23, 185, 189, 138, 15, 58, 255, 40, 192, 117, 143, 111, 19, 5, 249, 86, 3, 136, 255, 56, 33, 241, 52, 56, 243, 178, 165, 255, 164, 59, 159, 61, 6, 254, 113, 209, 178, 88, 9, 237, 17, 201, 221, 190, 186, 115, 185, 163, 96, 117, 104, 17, 134, 65, 191, 208, 165, 188, 18, 178, 144, 36, 128, 113, 3, 65, 125, 1, 61, 95, 178, 239, 188, 143, 239, 244, 18, 250, 117, 98, 214, 75, 254, 145, 102, 17, 204, 172, 140, 17, 89, 225, 74, 94, 251, 206, 65, 170, 66, 162, 124, 73, 129, 84, 195 }, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Subjects",
-                columns: new[] { "Id", "GroupId", "Name", "Semester" },
-                values: new object[] { new Guid("da792817-5aa6-4cef-ac33-ed9c55b8529f"), new Guid("95724443-5363-4c20-a262-da380d468e55"), "СУБД PostgreSQL", 0 });
-
-            migrationBuilder.InsertData(
-                table: "UserGroup",
-                columns: new[] { "Id", "GroupId", "RoleId", "UserId" },
-                values: new object[,]
-                {
-                    { new Guid("13fe4f0d-4397-4eb2-bffc-98ced8f53b4f"), new Guid("95724443-5363-4c20-a262-da380d468e55"), new Guid("2476f1d7-44f6-4600-8f43-7bd0d0d94c13"), new Guid("92662ddd-621c-49b8-9e59-9b8cfdc93dce") },
-                    { new Guid("1b54e61c-d95a-4f7c-abd8-e2c5c4fb49e7"), new Guid("95724443-5363-4c20-a262-da380d468e55"), new Guid("8858a359-c8cd-41c0-a5c8-351262ea7cb6"), new Guid("5cc3730e-0156-4222-aec2-047c10143f2e") },
-                    { new Guid("e821a7e6-5e3e-4b15-8628-f905073f782f"), new Guid("e8d0f771-d165-45c7-8f01-18c7ed92361b"), new Guid("2476f1d7-44f6-4600-8f43-7bd0d0d94c13"), new Guid("92662ddd-621c-49b8-9e59-9b8cfdc93dce") }
+                    { new Guid("17da9e14-79f3-4525-81a3-0ab476061245"), "teacherAdmin@mail.ru", new byte[] { 238, 66, 228, 19, 99, 82, 67, 205, 94, 32, 28, 168, 36, 192, 252, 77, 87, 225, 218, 13, 197, 73, 9, 142, 138, 52, 184, 170, 231, 6, 79, 147, 186, 44, 125, 82, 90, 124, 97, 110, 187, 40, 134, 141, 159, 233, 131, 17, 163, 131, 181, 3, 100, 135, 123, 201, 176, 22, 92, 177, 245, 176, 146, 80 }, new byte[] { 7, 45, 178, 209, 104, 189, 72, 100, 237, 95, 30, 191, 134, 107, 192, 86, 81, 155, 58, 89, 159, 220, 4, 127, 126, 164, 124, 146, 219, 251, 9, 12, 42, 96, 196, 128, 128, 195, 65, 2, 234, 136, 28, 65, 140, 249, 169, 46, 119, 167, 23, 138, 245, 185, 165, 12, 200, 178, 200, 126, 116, 251, 172, 223, 248, 84, 117, 86, 7, 88, 155, 187, 115, 157, 221, 245, 81, 163, 183, 152, 36, 44, 146, 14, 48, 210, 95, 173, 142, 239, 52, 90, 111, 228, 125, 188, 202, 36, 206, 82, 188, 236, 155, 198, 204, 8, 154, 79, 12, 16, 164, 235, 203, 226, 83, 150, 201, 180, 30, 106, 29, 62, 193, 151, 125, 135, 255, 108 }, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
+                    { new Guid("290fbd62-8902-4f99-88f5-2f19e5bb6e75"), "teacher@mail.ru", new byte[] { 34, 44, 134, 226, 13, 79, 90, 30, 122, 21, 131, 168, 119, 229, 222, 10, 117, 130, 133, 182, 114, 194, 51, 210, 144, 171, 227, 192, 80, 255, 150, 207, 223, 131, 203, 207, 163, 132, 131, 84, 194, 149, 216, 106, 121, 157, 7, 125, 46, 67, 177, 203, 204, 186, 111, 194, 168, 104, 104, 76, 13, 242, 119, 12 }, new byte[] { 54, 179, 144, 29, 101, 88, 143, 39, 75, 139, 208, 64, 181, 190, 161, 89, 44, 207, 85, 133, 43, 12, 113, 101, 174, 161, 5, 32, 205, 8, 54, 252, 70, 135, 90, 199, 196, 161, 54, 17, 63, 224, 132, 170, 123, 39, 227, 76, 46, 221, 101, 99, 180, 121, 73, 33, 86, 115, 26, 27, 158, 212, 134, 80, 87, 160, 124, 151, 218, 25, 68, 133, 134, 158, 105, 148, 143, 6, 212, 79, 239, 120, 71, 5, 208, 247, 211, 35, 100, 85, 114, 18, 245, 154, 42, 2, 162, 5, 211, 69, 55, 130, 87, 178, 22, 198, 94, 147, 73, 189, 186, 157, 71, 100, 223, 237, 42, 22, 26, 213, 152, 86, 77, 193, 114, 122, 72, 235 }, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
+                    { new Guid("634398cb-0109-43cc-ba3b-9666bdc17aa2"), "admin@mail.ru", new byte[] { 252, 24, 198, 82, 109, 229, 239, 205, 160, 240, 56, 104, 8, 97, 237, 99, 11, 249, 155, 249, 142, 67, 134, 101, 170, 110, 95, 40, 59, 18, 51, 67, 25, 29, 224, 212, 127, 135, 185, 104, 94, 144, 176, 81, 221, 73, 161, 42, 77, 115, 170, 174, 11, 24, 179, 186, 101, 106, 146, 33, 178, 155, 114, 118 }, new byte[] { 202, 65, 99, 64, 154, 180, 144, 111, 210, 225, 201, 177, 122, 117, 127, 62, 216, 8, 43, 216, 65, 82, 141, 158, 77, 90, 7, 75, 28, 52, 6, 151, 200, 220, 79, 7, 192, 27, 205, 189, 105, 5, 185, 20, 132, 182, 80, 243, 241, 86, 211, 48, 223, 70, 243, 222, 84, 102, 21, 155, 121, 155, 49, 67, 225, 149, 128, 3, 188, 33, 102, 51, 231, 114, 30, 132, 92, 80, 192, 199, 51, 249, 105, 61, 46, 95, 188, 232, 118, 27, 173, 113, 130, 20, 34, 116, 227, 96, 72, 138, 112, 156, 198, 70, 234, 190, 69, 112, 202, 240, 175, 222, 213, 221, 131, 211, 23, 136, 212, 111, 154, 90, 76, 109, 63, 224, 15, 166 }, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) },
+                    { new Guid("9bf32245-0165-49a5-9562-978f8a3c68dc"), "student@mail.ru", new byte[] { 142, 126, 144, 9, 100, 35, 94, 184, 117, 146, 180, 252, 130, 89, 212, 4, 86, 125, 238, 166, 109, 46, 232, 101, 94, 26, 40, 47, 77, 21, 166, 234, 178, 231, 105, 5, 169, 97, 46, 163, 208, 155, 138, 76, 208, 12, 238, 104, 5, 104, 206, 6, 203, 28, 123, 75, 91, 48, 56, 204, 187, 186, 82, 86 }, new byte[] { 40, 188, 77, 110, 208, 183, 53, 34, 110, 207, 169, 155, 177, 128, 178, 71, 153, 36, 30, 158, 191, 88, 228, 180, 35, 209, 18, 122, 83, 99, 48, 122, 248, 161, 75, 81, 152, 173, 101, 142, 147, 254, 153, 70, 11, 167, 96, 14, 99, 44, 45, 195, 43, 14, 87, 59, 19, 138, 183, 25, 182, 220, 232, 165, 61, 103, 116, 15, 215, 229, 201, 61, 117, 55, 155, 71, 95, 101, 240, 180, 148, 73, 123, 147, 5, 69, 144, 203, 158, 33, 75, 248, 82, 192, 224, 187, 160, 6, 27, 109, 133, 237, 76, 70, 16, 86, 216, 145, 79, 165, 131, 190, 180, 246, 3, 108, 247, 171, 135, 168, 230, 180, 41, 183, 242, 125, 238, 26 }, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) }
                 });
 
             migrationBuilder.InsertData(
@@ -253,38 +283,11 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 columns: new[] { "RoleId", "UserId" },
                 values: new object[,]
                 {
-                    { new Guid("2476f1d7-44f6-4600-8f43-7bd0d0d94c13"), new Guid("92662ddd-621c-49b8-9e59-9b8cfdc93dce") },
-                    { new Guid("2476f1d7-44f6-4600-8f43-7bd0d0d94c13"), new Guid("d3f6db69-f2f1-45dc-88c6-02b6189866e1") },
-                    { new Guid("8858a359-c8cd-41c0-a5c8-351262ea7cb6"), new Guid("5cc3730e-0156-4222-aec2-047c10143f2e") },
-                    { new Guid("8d6833f3-7a48-4397-84fd-8241e160324e"), new Guid("d3f6db69-f2f1-45dc-88c6-02b6189866e1") },
-                    { new Guid("8d6833f3-7a48-4397-84fd-8241e160324e"), new Guid("dcb54be9-9121-42bc-a3f5-57823b133027") }
-                });
-
-            migrationBuilder.InsertData(
-                table: "LabWorks",
-                columns: new[] { "Id", "MaximumScore", "Number", "SubjectId" },
-                values: new object[,]
-                {
-                    { new Guid("111b725b-f942-49db-8f4b-d767d43f561c"), 10m, 3, new Guid("da792817-5aa6-4cef-ac33-ed9c55b8529f") },
-                    { new Guid("a7278cef-91e0-40a2-871b-a45a16952550"), 10m, 4, new Guid("da792817-5aa6-4cef-ac33-ed9c55b8529f") },
-                    { new Guid("a943e750-0668-4191-8a5c-f5d9f6e64c2b"), 10m, 2, new Guid("da792817-5aa6-4cef-ac33-ed9c55b8529f") },
-                    { new Guid("eb83f7f5-e212-409f-816a-decbb7dc52b9"), 10m, 1, new Guid("da792817-5aa6-4cef-ac33-ed9c55b8529f") }
-                });
-
-            migrationBuilder.InsertData(
-                table: "TeacherSubject",
-                columns: new[] { "SubjectId", "UserId" },
-                values: new object[] { new Guid("da792817-5aa6-4cef-ac33-ed9c55b8529f"), new Guid("92662ddd-621c-49b8-9e59-9b8cfdc93dce") });
-
-            migrationBuilder.InsertData(
-                table: "LabWorkStatuses",
-                columns: new[] { "Id", "CurrentScore", "IsCompleted", "LabWorkId", "UserId" },
-                values: new object[,]
-                {
-                    { new Guid("06428e4c-3775-4df7-9204-dc59b3b2ef80"), 0m, false, new Guid("eb83f7f5-e212-409f-816a-decbb7dc52b9"), new Guid("5cc3730e-0156-4222-aec2-047c10143f2e") },
-                    { new Guid("523b7b93-ed33-43ed-b033-8339739323fd"), 0m, false, new Guid("a943e750-0668-4191-8a5c-f5d9f6e64c2b"), new Guid("5cc3730e-0156-4222-aec2-047c10143f2e") },
-                    { new Guid("54fbaafa-aab0-444e-88d3-edc9627dc098"), 0m, false, new Guid("111b725b-f942-49db-8f4b-d767d43f561c"), new Guid("5cc3730e-0156-4222-aec2-047c10143f2e") },
-                    { new Guid("6e04227a-4d98-420f-8f4f-2419103ccb09"), 0m, false, new Guid("a7278cef-91e0-40a2-871b-a45a16952550"), new Guid("5cc3730e-0156-4222-aec2-047c10143f2e") }
+                    { new Guid("256319a4-e6b0-47e7-b30d-f3226c63dad3"), new Guid("9bf32245-0165-49a5-9562-978f8a3c68dc") },
+                    { new Guid("c79e7d56-da96-4387-adf1-9e745422f8b0"), new Guid("17da9e14-79f3-4525-81a3-0ab476061245") },
+                    { new Guid("c79e7d56-da96-4387-adf1-9e745422f8b0"), new Guid("290fbd62-8902-4f99-88f5-2f19e5bb6e75") },
+                    { new Guid("e1e09171-2eb6-4537-b291-e4c7a871d1c8"), new Guid("17da9e14-79f3-4525-81a3-0ab476061245") },
+                    { new Guid("e1e09171-2eb6-4537-b291-e4c7a871d1c8"), new Guid("634398cb-0109-43cc-ba3b-9666bdc17aa2") }
                 });
 
             migrationBuilder.CreateIndex(
@@ -301,6 +304,11 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 name: "IX_LabWorks_SubjectId",
                 table: "LabWorks",
                 column: "SubjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Profiles_UserId",
+                table: "Profiles",
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Subjects_GroupId",
@@ -327,7 +335,7 @@ namespace AcademicProgressTracker.Persistence.Migrations
                 table: "UserGroup",
                 columns: new[] { "UserId", "RoleId" },
                 unique: true,
-                filter: "\"RoleId\" = '8858a359-c8cd-41c0-a5c8-351262ea7cb6'");
+                filter: "\"RoleId\" = '256319a4-e6b0-47e7-b30d-f3226c63dad3'");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserRole_UserId",
@@ -340,6 +348,12 @@ namespace AcademicProgressTracker.Persistence.Migrations
         {
             migrationBuilder.DropTable(
                 name: "LabWorkStatuses");
+
+            migrationBuilder.DropTable(
+                name: "Profiles");
+
+            migrationBuilder.DropTable(
+                name: "SubjectMappings");
 
             migrationBuilder.DropTable(
                 name: "TeacherSubject");

@@ -23,6 +23,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
             _dataContext = dataContext;
         }
 
+        // МЕТОД НЕВЕРНЫЙ, ПЕРЕДЕЛАТЬ (Т.К. МЫ ТЕПЕРЬ НЕ СВЯЗЫВАЕМ ПРЕПОДАВАТЕЛЕЙ И ГРУППЫ В USERGROUPS, СМЫСЛА В ЭТОМ НЕТ)
         [HttpGet("myGroups")]
         public async Task<IEnumerable<GroupViewModel>> GetMyGroups()
         {
@@ -38,7 +39,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
             {
                 if (group is not null)
                 {
-                    groupsView.Add(new GroupViewModel { Id = group.Id, Name = group.Name, Course = group.Course });
+                    groupsView.Add(new GroupViewModel { Id = group.Id, Name = group.Name });
                 }
             }
 

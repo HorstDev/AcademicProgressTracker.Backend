@@ -34,12 +34,7 @@ namespace AcademicProgressTracker.WebApi.Services
                 if (user == null)
                 {
                     _passwordHasher.CreateHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
-                    user = new User
-                    {
-                        Email = request.Email,
-                        PasswordHash = passwordHash,
-                        PasswordSalt = passwordSalt
-                    };
+                    user = new User(request.Email, passwordHash, passwordSalt);
                     Role userRole = (await _roleRepository.GetByNameAsync("Student"))!;
                     user.Roles.Add(userRole);
                     
@@ -57,6 +52,20 @@ namespace AcademicProgressTracker.WebApi.Services
                 // тут можно реализовать логгирование
                 throw; // перебрасываем исключение для того, чтобы его поймал middleware
             }
+        }
+
+        // Получение пользователя преподавателя с установленным рандомным логином и паролем
+        // P.S. сейчас используется логин и пароль == name, это для удобства, пока нет отправки ссылки с токеном преподавателю для смены пароля,
+        // чтобы можно было заходить за преподавателя во время разработки. ЭТО ИСПРАВИТЬ В БУДУЩЕМ ЧТОБЫ БЫЛИ РАНДОМНЫЕ ДАННЫЕ
+        public async Task<User> GetTeacherUserWithRandomLoginAndPasswordAsync(string name)
+        {
+            _passwordHasher.CreateHash(name, out byte[] passwordHash, out byte[] passwordSalt);
+            Role teacherRole = (await _roleRepository.GetByNameAsync("Teacher"))!;
+
+            var user = new User(name, passwordHash, passwordSalt);
+            user.Roles.Add(teacherRole);
+
+            return user;
         }
 
         public async Task<AuthTokensDto> LoginAsync(UserDto request)
