@@ -98,17 +98,24 @@ namespace AcademicProgressTracker.WebApi.Controllers
                 if (testSubject != null)
                     return BadRequest($"У группы {group.Name} уже загружены дисциплины за {commonSemester} семестр!");
 
-                // 1. Добавляем предметы (если предмета нет в учебном плане, ставим 0 часов лабораторных занятий)
+                // 1. Добавляем предметы и их лабораторные занятия (если предмета нет в учебном плане, то и лабораторных занятий нет)
                 var subjectsToDatabase = new List<Subject>();
                 foreach (var subjectApiTable in subjectsInApiTable)
                 {
+                    // Добавляем лабораторные занятия для предмета
+                    var labLessons = new List<Lesson>();
                     var subjectCurriculum = subjectsMappings.Single(x => x.SubjectNameApiTable == subjectApiTable).SubjectNameCurriculum;
+                    int labLessonCount = subjectCurriculum == null ? 0 : curriculumAnalyzer.GetNumberOfLaboratoryLesson(subjectCurriculum, commonSemester);
+                    for (int i = 0; i < labLessonCount; i++)
+                        labLessons.Add(new LabLesson { Number = i });
+
+                    // Добавляем предметы
                     subjectsToDatabase.Add(new Subject
                     {
                         Name = subjectApiTable,
                         Group = group,
                         Semester = commonSemester,
-                        LabLessonCount = subjectCurriculum == null ? 0 : curriculumAnalyzer.GetNumberOfLaboratoryLesson(subjectCurriculum, commonSemester)
+                        Lessons = labLessons
                     });
                 }
                 // Добавляем предметы в БД

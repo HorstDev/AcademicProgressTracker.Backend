@@ -5,6 +5,7 @@
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;    // ДИПР
         public byte[] CurriculumExcelDocument { get; set; }
+        public ICollection<Subject> Subjects { get; set; } = new List<Subject>();
 
         public Group(string name, byte[] curriculumExcelDocument)
         {
