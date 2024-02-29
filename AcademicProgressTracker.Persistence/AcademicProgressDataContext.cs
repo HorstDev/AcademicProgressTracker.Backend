@@ -5,8 +5,6 @@ using AcademicProgressTracker.Domain.Entities;
 using AcademicProgressTracker.Persistence.EntityTypeConfigurations;
 using AcademicProgressTracker.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using System.Reflection.Emit;
 
 namespace AcademicProgressTracker.Persistence
 {
@@ -14,6 +12,8 @@ namespace AcademicProgressTracker.Persistence
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
+        public DbSet<Profile> Profiles { get; set; }
+        public DbSet<TeacherProfile> TeacherProfiles { get; set; }
         public DbSet<UserGroup> UserGroup { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<TeacherSubject> TeacherSubject { get; set; }
@@ -34,28 +34,28 @@ namespace AcademicProgressTracker.Persistence
             // Получаем данные
             var roles = GetRoles();
             var users = GetUsers();
-            var groups = GetGroups();
-            var subjects = GetSubjects(groups);
-            var labworks = GetLabWorks(subjects);
-            var labworkstatuses = GetLabWorkStatuses(labworks, users);
+            //var groups = GetGroups();
+            //var subjects = GetSubjects(groups);
+            //var labworks = GetLabWorks(subjects);
+            //var labworkstatuses = GetLabWorkStatuses(labworks, users);
             var subjectMappings = GetSubjectMappings();
 
             // Применяем конфигурации
             modelBuilder.ApplyConfiguration(new UserConfiguration());
             modelBuilder.ApplyConfiguration(new UserGroupConfiguration(roles.Single(x => x.Name == "Student").Id));
-            modelBuilder.Entity<LabWorkStatus>()
-                .Property(x => x.CurrentScore)
-                .HasColumnType("numeric(18, 2)");
-            modelBuilder.Entity<LabWork>()
-                .Property(x => x.MaximumScore)
-                .HasColumnType("numeric(18, 2)");
+            //modelBuilder.Entity<LabWorkStatus>()
+            //    .Property(x => x.CurrentScore)
+            //    .HasColumnType("numeric(18, 2)");
+            //modelBuilder.Entity<LabWork>()
+            //    .Property(x => x.MaximumScore)
+            //    .HasColumnType("numeric(18, 2)");
 
             // Устанавливаем данные
             CreateUsersAndRoles(modelBuilder, users, roles);
-            CreateGroupsAndRelations(modelBuilder, users, roles, groups);
-            CreateTeacherAndSubjectRelations(modelBuilder, users, subjects);
-            modelBuilder.Entity<LabWork>().HasData(labworks);
-            modelBuilder.Entity<LabWorkStatus>().HasData(labworkstatuses);
+            //CreateGroupsAndRelations(modelBuilder, users, roles, groups);
+            //CreateTeacherAndSubjectRelations(modelBuilder, users, subjects);
+            //modelBuilder.Entity<LabWork>().HasData(labworks);
+            //modelBuilder.Entity<LabWorkStatus>().HasData(labworkstatuses);
             modelBuilder.Entity<SubjectMapping>().HasData(subjectMappings);
 
             modelBuilder.UseSerialColumns();
@@ -84,87 +84,87 @@ namespace AcademicProgressTracker.Persistence
             };
         }
 
-        private LabWorkStatus[] GetLabWorkStatuses(LabWork[] labworks, User[] users)
-        {
-            return new LabWorkStatus[]
-            {
-                new LabWorkStatus { Id = Guid.NewGuid(), IsCompleted = false, LabWorkId = labworks.Single(x => x.Number == 1).Id, UserId = users.Single(x => x.Email == "student@mail.ru").Id },
-                new LabWorkStatus { Id = Guid.NewGuid(), IsCompleted = false, LabWorkId = labworks.Single(x => x.Number == 2).Id, UserId = users.Single(x => x.Email == "student@mail.ru").Id },
-                new LabWorkStatus { Id = Guid.NewGuid(), IsCompleted = false, LabWorkId = labworks.Single(x => x.Number == 3).Id, UserId = users.Single(x => x.Email == "student@mail.ru").Id },
-                new LabWorkStatus { Id = Guid.NewGuid(), IsCompleted = false, LabWorkId = labworks.Single(x => x.Number == 4).Id, UserId = users.Single(x => x.Email == "student@mail.ru").Id },
-            };
-        }
+        //private LabWorkStatus[] GetLabWorkStatuses(LabWork[] labworks, User[] users)
+        //{
+        //    return new LabWorkStatus[]
+        //    {
+        //        new LabWorkStatus { Id = Guid.NewGuid(), IsCompleted = false, LabWorkId = labworks.Single(x => x.Number == 1).Id, UserId = users.Single(x => x.Email == "student@mail.ru").Id },
+        //        new LabWorkStatus { Id = Guid.NewGuid(), IsCompleted = false, LabWorkId = labworks.Single(x => x.Number == 2).Id, UserId = users.Single(x => x.Email == "student@mail.ru").Id },
+        //        new LabWorkStatus { Id = Guid.NewGuid(), IsCompleted = false, LabWorkId = labworks.Single(x => x.Number == 3).Id, UserId = users.Single(x => x.Email == "student@mail.ru").Id },
+        //        new LabWorkStatus { Id = Guid.NewGuid(), IsCompleted = false, LabWorkId = labworks.Single(x => x.Number == 4).Id, UserId = users.Single(x => x.Email == "student@mail.ru").Id },
+        //    };
+        //}
 
-        private LabWork[] GetLabWorks(Subject[] subjects)
-        {
-            return new LabWork[]
-            {
-                new LabWork { Id = Guid.NewGuid(), Number = 1, MaximumScore = 10, SubjectId = subjects.Single(x => x.Name == "СУБД PostgreSQL").Id },
-                new LabWork { Id = Guid.NewGuid(), Number = 2, MaximumScore = 10, SubjectId = subjects.Single(x => x.Name == "СУБД PostgreSQL").Id },
-                new LabWork { Id = Guid.NewGuid(), Number = 3, MaximumScore = 10, SubjectId = subjects.Single(x => x.Name == "СУБД PostgreSQL").Id },
-                new LabWork { Id = Guid.NewGuid(), Number = 4, MaximumScore = 10, SubjectId = subjects.Single(x => x.Name == "СУБД PostgreSQL").Id },
-            };
-        }
+        //private LabWork[] GetLabWorks(Subject[] subjects)
+        //{
+        //    return new LabWork[]
+        //    {
+        //        new LabWork { Id = Guid.NewGuid(), Number = 1, MaximumScore = 10, SubjectId = subjects.Single(x => x.Name == "СУБД PostgreSQL").Id },
+        //        new LabWork { Id = Guid.NewGuid(), Number = 2, MaximumScore = 10, SubjectId = subjects.Single(x => x.Name == "СУБД PostgreSQL").Id },
+        //        new LabWork { Id = Guid.NewGuid(), Number = 3, MaximumScore = 10, SubjectId = subjects.Single(x => x.Name == "СУБД PostgreSQL").Id },
+        //        new LabWork { Id = Guid.NewGuid(), Number = 4, MaximumScore = 10, SubjectId = subjects.Single(x => x.Name == "СУБД PostgreSQL").Id },
+        //    };
+        //}
 
-        private void CreateTeacherAndSubjectRelations(ModelBuilder modelBuilder, User[] users, Subject[] subjects)
-        {
-            modelBuilder.Entity<Subject>().HasData(subjects);
-            modelBuilder.Entity<TeacherSubject>().HasData(
-                    new TeacherSubject
-                    {
-                        UserId = users.Single(x => x.Email == "teacher@mail.ru").Id,
-                        SubjectId = subjects.Single(x => x.Name == "СУБД PostgreSQL").Id
-                    }
-                );
-        }
+        //private void CreateTeacherAndSubjectRelations(ModelBuilder modelBuilder, User[] users, Subject[] subjects)
+        //{
+        //    modelBuilder.Entity<Subject>().HasData(subjects);
+        //    modelBuilder.Entity<TeacherSubject>().HasData(
+        //            new TeacherSubject
+        //            {
+        //                UserId = users.Single(x => x.Email == "teacher@mail.ru").Id,
+        //                SubjectId = subjects.Single(x => x.Name == "СУБД PostgreSQL").Id
+        //            }
+        //        );
+        //}
 
-        private Subject[] GetSubjects(Group[] groups)
-        {
-            return new Subject[]
-            {
-                new Subject { Id = Guid.NewGuid(), Name = "СУБД PostgreSQL", GroupId = groups.First(x => x.Name == "ДИПРБ" && x.Course == 4).Id},
-            };
+        //private Subject[] GetSubjects(Group[] groups)
+        //{
+        //    return new Subject[]
+        //    {
+        //        new Subject { Id = Guid.NewGuid(), Name = "СУБД PostgreSQL", GroupId = groups.First(x => x.Name == "ДИПРБ" && x.Course == 4).Id},
+        //    };
 
-        }
+        //}
 
-        private void CreateGroupsAndRelations(ModelBuilder modelBuilder, User[] users, Role[] roles, Group[] groups)
-        {
-            modelBuilder.Entity<Group>().HasData(groups);
-            modelBuilder.Entity<UserGroup>().HasData(
-                    new UserGroup
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = users.Single(x => x.Email == "student@mail.ru").Id,
-                        GroupId = groups.Single(x => x.Name == "ДИПРБ").Id,
-                        RoleId = roles.Single(x => x.Name == "Student").Id
-                    },
-                    new UserGroup
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = users.Single(x => x.Email == "teacher@mail.ru").Id,
-                        GroupId = groups.Single(x => x.Name == "ДИИЭБ").Id,
-                        RoleId = roles.Single(x => x.Name == "Teacher").Id
-                    },
-                    new UserGroup
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = users.Single(x => x.Email == "teacher@mail.ru").Id,
-                        GroupId = groups.Single(x => x.Name == "ДИПРБ").Id,
-                        RoleId = roles.Single(x => x.Name == "Teacher").Id
-                    }
-                );
-        }
+        //private void CreateGroupsAndRelations(ModelBuilder modelBuilder, User[] users, Role[] roles, Group[] groups)
+        //{
+        //    modelBuilder.Entity<Group>().HasData(groups);
+        //    modelBuilder.Entity<UserGroup>().HasData(
+        //            new UserGroup
+        //            {
+        //                Id = Guid.NewGuid(),
+        //                UserId = users.Single(x => x.Email == "student@mail.ru").Id,
+        //                GroupId = groups.Single(x => x.Name == "ДИПРБ").Id,
+        //                RoleId = roles.Single(x => x.Name == "Student").Id
+        //            },
+        //            new UserGroup
+        //            {
+        //                Id = Guid.NewGuid(),
+        //                UserId = users.Single(x => x.Email == "teacher@mail.ru").Id,
+        //                GroupId = groups.Single(x => x.Name == "ДИИЭБ").Id,
+        //                RoleId = roles.Single(x => x.Name == "Teacher").Id
+        //            },
+        //            new UserGroup
+        //            {
+        //                Id = Guid.NewGuid(),
+        //                UserId = users.Single(x => x.Email == "teacher@mail.ru").Id,
+        //                GroupId = groups.Single(x => x.Name == "ДИПРБ").Id,
+        //                RoleId = roles.Single(x => x.Name == "Teacher").Id
+        //            }
+        //        );
+        //}
 
-        private Group[] GetGroups()
-        {
-            var groups = new Group[]
-            {
-                new Group { Id = Guid.NewGuid(), Name = "ДИПРБ", Course = 4, YearCreated = 2020 },
-                new Group { Id = Guid.NewGuid(), Name = "ДИИЭБ", Course = 4, YearCreated = 2020 },
-            };
+        //private Group[] GetGroups()
+        //{
+        //    var groups = new Group[]
+        //    {
+        //        new Group { Id = Guid.NewGuid(), Name = "ДИПРБ", Course = 4, YearCreated = 2020, CurriculumExcelDocument = new byte[1] },
+        //        new Group { Id = Guid.NewGuid(), Name = "ДИИЭБ", Course = 4, YearCreated = 2020, CurriculumExcelDocument = new byte[1] },
+        //    };
 
-            return groups;
-        }
+        //    return groups;
+        //}
 
         private void CreateUsersAndRoles(ModelBuilder modelBuilder, User[] users, Role[] roles)
         {
@@ -225,13 +225,9 @@ namespace AcademicProgressTracker.Persistence
         private static User GetUser(UserDto request, IPasswordHasher passwordHasher)
         {
             passwordHasher.CreateHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
-            var user = new User
-            {
-                Id = Guid.NewGuid(),
-                Email = request.Email,
-                PasswordHash = passwordHash,
-                PasswordSalt = passwordSalt
-            };
+
+            var user = new User(request.Email, passwordHash, passwordSalt);
+            user.Id = Guid.NewGuid();
 
             return user;
         }

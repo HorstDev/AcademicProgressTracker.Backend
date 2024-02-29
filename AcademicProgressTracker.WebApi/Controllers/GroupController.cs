@@ -1,4 +1,5 @@
 ﻿using AcademicProgressTracker.Application.Common.DTOs;
+using AcademicProgressTracker.Application.Common.Interfaces.Services;
 using AcademicProgressTracker.Application.Curriculum;
 using AcademicProgressTracker.Domain.Entities;
 using AcademicProgressTracker.Persistence;
@@ -13,19 +14,19 @@ namespace AcademicProgressTracker.WebApi.Controllers
     {
         private readonly AcademicProgressDataContext _dataContext;
         private readonly HttpClient _httpClient;
+        private readonly IAuthService _authService;     // нужен для регистрации новых преподавателей (в будущем убрать в другой сервис)
 
-        public GroupController(AcademicProgressDataContext dataContext, HttpClient httpClient)
+        public GroupController(AcademicProgressDataContext dataContext, HttpClient httpClient, IAuthService authService)
         {
             _dataContext = dataContext;
             _httpClient = httpClient;
+            _authService = authService;
         }
 
         // Загрузка новой группы
         [HttpPost("{groupName}")]
         public async Task<ActionResult> Create(string groupName, IFormFile excelCurriculum)
         {
-            var group = new Group { Name = Uri.UnescapeDataString(groupName) };
-
             // P.S. НАДО БУДЕТ ДОБАВИТЬ УНИКАЛЬНОСТЬ В КОНФИГУРАЦИИ БД ДЛЯ НАЗВАНИЯ ГРУППЫ ИНАЧЕ ПЛОХО
             if (excelCurriculum != null && excelCurriculum.Length > 0)
             {
@@ -33,7 +34,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
                 {
                     excelCurriculum.CopyTo(memoryStream);
                     var curriculumExcelDocumentBytes = memoryStream.ToArray();
-                    group.CurriculumExcelDocument = curriculumExcelDocumentBytes;
+                    var group = new Group(Uri.UnescapeDataString(groupName), curriculumExcelDocumentBytes);
                     await _dataContext.AddAsync(group);
                     await _dataContext.SaveChangesAsync();
                     return Ok($"Учебный план {excelCurriculum.FileName} успешно загружен для группы {group.Name}.");
@@ -44,7 +45,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
         }
 
         // Загрузка зависимостей для группы (учителя и дисциплины)
-        [HttpPost("{groupId}/UploadDependencies")]
+        [HttpPost("{groupId}/upload-dependencies")]
         public async Task<ActionResult> UploadTeachersAndSubjects(Guid groupId)
         {
             var group = await _dataContext.Groups.SingleAsync(x => x.Id == groupId);
@@ -62,35 +63,99 @@ namespace AcademicProgressTracker.WebApi.Controllers
 
                 var teachersInApiTable = teachersAndSubjects
                     .Select(entry => entry.Teacher)
+                    .Distinct()
                     .ToList();
 
                 // Выбираем дисциплины из api table
                 var subjectsInApiTable = teachersAndSubjects
                     .Select(entry => entry.Discipline)
+                    .Distinct()
                     .ToList();
 
-                // Выбираем названия дисциплин, которые соответствуют дисциплинам из api table из БД (если дисциплина == null, то ее не выбираем, так как ее нет в учебном плане)
-                var subjectsInCurriculum = await _dataContext.SubjectMappings
-                    .Where(x => subjectsInApiTable.Contains(x.SubjectNameApiTable) && x.SubjectNameCurriculum != null)
-                    .Select(x => x.SubjectNameCurriculum)
+                // Выбираем названия дисциплин, которые соответствуют дисциплинам из api table из БД
+                var subjectsMappings = await _dataContext.SubjectMappings
+                    .Where(x => subjectsInApiTable.Contains(x.SubjectNameApiTable))
                     .ToListAsync();
 
-                // ТУТ СОЗДАНИЕ УЧИТЕЛЕЙ, ПРЕДМЕТОВ, СВЯЗЕЙ МЕЖДУ НИМИ И ТД, ПОТОМ УЖЕ ИЩЕМ СЕМЕСТР И ЧАСЫ И ПРИСВАИВАЕМ ЕГО ВСЕМ ПРЕДМЕТАМ
-                // -------------
+                if (subjectsMappings.Count < subjectsInApiTable.Count)
+                    return BadRequest($"Ошибка: в таблице 'ПредметСервер - ПредметУчебныйПлан' не хватает предметов для группы {group.Name}");
 
-                // -------------
+                var subjectsInCurriculum = subjectsMappings
+                    .Select(x => x.SubjectNameCurriculum)
+                    .ToList();
 
-                // P.S. В БУДУЩЕМ НА ВСЯКИЙ ПОМЕНЯТЬ У ГРУППЫ ДОКУМЕНТ НА NOT NULL, ЩАС СДЕЛАТЬ НЕЛЬЗЯ ПОТОМУ ЧТО В ДАТАСИДЕ ЕСТЬ ГРУППЫ С NULL ДОКУМЕНТОМ
                 var curriculumAnalyzer = new CurriculumAnalyzer(group.CurriculumExcelDocument);
+
+                // Извлекаем для каждой дисциплины из api те дисциплины, которые есть в учебном плане и с помощью них находим общий семестр
+                var subjectsExistsInCurriculum = subjectsMappings
+                    .Where(x => x.SubjectNameCurriculum != null)
+                    .Select(x => x.SubjectNameCurriculum)
+                    .ToList();
                 int commonSemester = curriculumAnalyzer.GetCommonSemesterForSubjects(subjectsInCurriculum!);
 
-                foreach (var subject in subjectsInCurriculum)
+                // Проверяем, есть ли с этим общим семестром дисциплины у группы, если есть, то они уже загружены
+                var testSubject = await _dataContext.Subjects.FirstOrDefaultAsync(x => x.GroupId == group.Id && x.Semester == commonSemester);
+                if (testSubject != null)
+                    return BadRequest($"У группы {group.Name} уже загружены дисциплины за {commonSemester} семестр!");
+
+                // 1. Добавляем предметы (если предмета нет в учебном плане, ставим 0 часов лабораторных занятий)
+                var subjectsToDatabase = new List<Subject>();
+                foreach (var subjectApiTable in subjectsInApiTable)
                 {
-                    int numberOfLaboratoryLesson = curriculumAnalyzer.GetNumberOfLaboratoryLesson(subject!, commonSemester);
+                    var subjectCurriculum = subjectsMappings.Single(x => x.SubjectNameApiTable == subjectApiTable).SubjectNameCurriculum;
+                    subjectsToDatabase.Add(new Subject
+                    {
+                        Name = subjectApiTable,
+                        Group = group,
+                        Semester = commonSemester,
+                        LabLessonCount = subjectCurriculum == null ? 0 : curriculumAnalyzer.GetNumberOfLaboratoryLesson(subjectCurriculum, commonSemester)
+                    });
                 }
+                // Добавляем предметы в БД
+                await _dataContext.Subjects.AddRangeAsync(subjectsToDatabase);
+
+                // 2. Добавляем преподавателей
+                var teacherUsersToDatabase = new List<User>();
+                // Выбираем преподавателей из группы, которые уже загружены в БД
+                var teachersDatabase = await _dataContext.TeacherProfiles
+                    .Where(x => teachersInApiTable.Contains(x.Name))
+                    .Include(x => x.User)
+                    .ToListAsync();
+                var teachersDatabaseNames = teachersDatabase.Select(x => x.Name);
+
+                foreach(var teacherName in teachersInApiTable)
+                {
+                    // Выбираем дисциплины для преподавателя из subjects
+                    var subjectsNamesForThisTeacher = teachersAndSubjects.Where(x => x.Teacher == teacherName).Select(x => x.Discipline);
+                    var subjectsForThisTeacherInDatabase = subjectsToDatabase.Where(x => subjectsNamesForThisTeacher.Contains(x.Name));
+                    // Если преподаватель из api table есть в базе данных, то просто добавляем ему новые дисциплины
+                    if (teachersDatabaseNames.Contains(teacherName))
+                    {
+                        foreach(var subject in subjectsForThisTeacherInDatabase)
+                        {
+                            teachersDatabase.Single(x => x.Name == teacherName).User!.Subjects.Add(subject);
+                        }
+                    }
+                    else    // иначе создаем новый аккаунт для преподавателя и профиль преподавателя
+                    {
+                        var teacherUser = await _authService.GetTeacherUserWithRandomLoginAndPasswordAsync(teacherName);
+                        teacherUser.Profiles.Add(new TeacherProfile { User = teacherUser, Name = teacherName });
+                        foreach (var subject in subjectsForThisTeacherInDatabase)
+                        {
+                            teacherUser.Subjects.Add(subject);
+                        }
+                        // Добавляем новых преподавателей в БД
+                        teacherUsersToDatabase.Add(teacherUser);
+                    }
+                }
+                // Добавляем преподавателей с зависимостями (профили учителей, предметы) в БД
+                await _dataContext.Users.AddRangeAsync(teacherUsersToDatabase);
+                // Сохраняем все изменения, которые были сделаны
+                await _dataContext.SaveChangesAsync();
+                return Ok("Успешно загружено в базу данных");
             }
 
-            return Ok();
+            return StatusCode(502, "Bad Gateway");
         }
     }
 }
