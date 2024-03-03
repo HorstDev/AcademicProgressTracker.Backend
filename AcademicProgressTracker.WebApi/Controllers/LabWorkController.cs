@@ -19,6 +19,37 @@ namespace AcademicProgressTracker.WebApi.Controllers
             _dataContext = dataContext;
         }
 
+        [HttpPost("create-many/{subjectId}")]
+        public async Task<ActionResult> AddRange(Guid subjectId, IEnumerable<AddLabWorkViewModel> labWorksVm)
+        {
+            // Выбираем все лабораторные занятия и упорядочиваем по номеру, чтобы было удобно проходить по ним
+            var labLessons = await _dataContext.LabLessons
+                .Where(x => x.SubjectId == subjectId)
+                .OrderBy(x => x.Number)
+                .ToListAsync();
+            if (labLessons.Count != labWorksVm.Sum(x => x.LessonCount))
+                return BadRequest("Ошибка! Количество занятий, выделенных на ЛР, не совпадает с количеством занятий в расписании!");
+
+            var labWorksToDatabase = new List<LabWork>();
+            int currentLesson = 0;
+            // Проходимся по всем лабораторным
+            foreach (var labWork in labWorksVm)
+            {
+                var labWorkToDatabase = new LabWork { Number = labWork.Number, Score = labWork.Score };
+                // Проходимся по количеству занятий у лабораторной и добавляем ей соответствующие занятия
+                for (int i = 0; i < labWork.LessonCount; i++)
+                {
+                    labWorkToDatabase.Lessons.Add(labLessons[currentLesson++]);
+                }
+                labWorksToDatabase.Add(labWorkToDatabase);
+            }
+
+            await _dataContext.LabWorks.AddRangeAsync(labWorksToDatabase);
+            await _dataContext.SaveChangesAsync();
+
+            return Created();
+        }
+
         //[HttpGet("students-with-labs/{subjectId}")]
         //public async Task<ActionResult<IEnumerable<LabWorksWithWtudentViewModel>>> GetStudentsWithLabWorksBySubjectId(Guid subjectId)
         //{
