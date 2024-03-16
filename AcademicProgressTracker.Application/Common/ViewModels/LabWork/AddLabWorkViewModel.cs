@@ -4,6 +4,6 @@
     {
         public int Number { get; set; }
         public decimal Score { get; set; }
-        public int LessonCount { get;set; }
+        public List<Guid> LabLessonsIds { get; set; } = new();
     }
 }
