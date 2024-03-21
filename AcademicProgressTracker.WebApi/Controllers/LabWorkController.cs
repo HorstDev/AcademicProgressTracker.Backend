@@ -24,15 +24,39 @@ namespace AcademicProgressTracker.WebApi.Controllers
         [HttpPost]
         public async Task<ActionResult<LabWork>> Post(AddLabWorkViewModel labWorkVm)
         {
-            // Это сделать в репозитории (установление id)
-            Guid createdId = Guid.NewGuid();
+            // Выбираем лабораторные занятия, которые были указаны как привязанные к лабораторной работе
+            var labLessons = await _dataContext.LabLessons.Where(labLesson => labWorkVm.LabLessonsIds.Contains(labLesson.Id))
+                .Include(x => x.Subject)
+                .ToListAsync();
+
+            // Если лабораторных занятий, указанных на клиенте не нашлось
+            if (!labLessons.Any())
+                return BadRequest("Лабораторные занятия не указаны!");
+
+            // Выбираем id группы, в которой происходит добавление ЛР
+            var groupId = labLessons[0].Subject!.GroupId;
+            // Выбираем всех студентов, которые состоят в группе, для которой добавляется лабораторная работа
+            var studentIdsInGroup = await _dataContext.UserGroup.Where(x => x.GroupId == groupId && x.Role!.Name == "Student")
+                .Select(x => x.UserId)
+                .ToListAsync();
+
+            // Для каждого пользователя в группе добавляем статус выполнения лабораторной работы
+            var userStatuses = new List<LabWorkUserStatus>();
+            foreach(var studentUserId in studentIdsInGroup)
+            {
+                userStatuses.Add(new LabWorkUserStatus
+                {
+                    UserId = studentUserId,
+                    IsDone = false
+                });
+            }
 
             var labWork = new LabWork
             {
-                Id = createdId,
                 Number = labWorkVm.Number,
                 Score = labWorkVm.Score,
-                Lessons = await _dataContext.LabLessons.Where(labLesson => labWorkVm.LabLessonsIds.Contains(labLesson.Id)).ToListAsync()
+                UserStatuses = userStatuses,
+                Lessons = labLessons
             };
 
             await _dataContext.LabWorks.AddAsync(labWork);

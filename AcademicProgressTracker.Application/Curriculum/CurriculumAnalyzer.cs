@@ -14,6 +14,110 @@ namespace AcademicProgressTracker.Application.Curriculum
         }
 
         /// <summary>
+        /// Возвращает количество практик
+        /// </summary>
+        /// <param name="subject">Предмет</param>
+        /// <param name="semester">Семестр</param>
+        /// <returns>количество практик</returns>
+        /// <exception cref="ApplicationException"></exception>
+        public int GetNumberOfPracticeLesson(string subject, int semester)
+        {
+            if (_curriculumExcelDocument != null)
+            {
+                using (var package = new ExcelPackage(new MemoryStream(_curriculumExcelDocument)))
+                {
+                    var worksheet = package.Workbook.Worksheets[(int)Worksheet.Plan];
+                    int columnCount = worksheet.Dimension.End.Column;
+                    int rowCount = worksheet.Dimension.End.Row;
+                    int rowWithPracticeHours = 0, columnWithPracticeHours = 0;    // строка и столбец, которые соответствуют практикам
+                    int countColumnsWithPractice = 0;                             // счетчик столбцов, в которых есть "Пр" (столбцы с часами практик)
+
+                    // Находим колонку с количеством часов практик, которые соответствуют семестру (semester)
+                    // P.S. В enum.Columns нет константных столбцов, так как они могут отличаться в зависимости от учебного плана
+                    for (int column = 1; column <= columnCount; column++)
+                    {
+                        if (worksheet.Cells[3, column].Text == "Пр")
+                            countColumnsWithPractice++;
+
+                        if (countColumnsWithPractice == semester)
+                        {
+                            columnWithPracticeHours = column;
+                            break;
+                        }
+                    }
+
+                    // Находим строку, которая соответствует нужным часам практик
+                    for (int row = 1; row <= rowCount; row++)
+                    {
+                        if (worksheet.Cells[row, (int)Column.NamesOfSubjects].Text == subject)
+                        {
+                            rowWithPracticeHours = row;
+                            break;
+                        }
+                    }
+
+                    // Возвращаем количество практик (2 часа == 1 занятие)
+                    if (worksheet.Cells[rowWithPracticeHours, columnWithPracticeHours].Text.IsNullOrEmpty())
+                        return 0;
+                    return int.Parse(worksheet.Cells[rowWithPracticeHours, columnWithPracticeHours].Text) / 2;
+                }
+            }
+            throw new ArgumentNullException("Документ с учебным планом не был загружен");
+        }
+
+        /// <summary>
+        /// Возвращает количество лекций
+        /// </summary>
+        /// <param name="subject">Предмет</param>
+        /// <param name="semester">Семестр</param>
+        /// <returns>количество лекций</returns>
+        /// <exception cref="ApplicationException"></exception>
+        public int GetNumberOfLectureLesson(string subject, int semester)
+        {
+            if (_curriculumExcelDocument != null)
+            {
+                using (var package = new ExcelPackage(new MemoryStream(_curriculumExcelDocument)))
+                {
+                    var worksheet = package.Workbook.Worksheets[(int)Worksheet.Plan];
+                    int columnCount = worksheet.Dimension.End.Column;
+                    int rowCount = worksheet.Dimension.End.Row;
+                    int rowWithLectureHours = 0, columnWithLectureHours = 0;    // строка и столбец, которые соответствуют лекциям
+                    int countColumnsWithLecture = 0;                            // счетчик столбцов, в которых есть "Лек" (столбцы с часами лекций)
+
+                    // Находим колонку с количеством часов лекций, которые соответствуют семестру (semester)
+                    // P.S. В enum.Columns нет константных столбцов, так как они могут отличаться в зависимости от учебного плана
+                    for (int column = 1; column <= columnCount; column++)
+                    {
+                        if (worksheet.Cells[3, column].Text == "Лек")
+                            countColumnsWithLecture++;
+
+                        if (countColumnsWithLecture == semester)
+                        {
+                            columnWithLectureHours = column;
+                            break;
+                        }
+                    }
+
+                    // Находим строку, которая соответствует нужным часам лекций
+                    for (int row = 1; row <= rowCount; row++)
+                    {
+                        if (worksheet.Cells[row, (int)Column.NamesOfSubjects].Text == subject)
+                        {
+                            rowWithLectureHours = row;
+                            break;
+                        }
+                    }
+
+                    // Возвращаем количество лекций (2 часа == 1 занятие)
+                    if (worksheet.Cells[rowWithLectureHours, columnWithLectureHours].Text.IsNullOrEmpty())
+                        return 0;
+                    return int.Parse(worksheet.Cells[rowWithLectureHours, columnWithLectureHours].Text) / 2;
+                }
+            }
+            throw new ArgumentNullException("Документ с учебным планом не был загружен");
+        }
+
+        /// <summary>
         /// Возвращает количество лабораторных занятий
         /// </summary>
         /// <param name="subject">Предмет</param>

@@ -15,6 +15,7 @@ namespace AcademicProgressTracker.Persistence
         public DbSet<Role> Roles { get; set; }
         public DbSet<Profile> Profiles { get; set; }
         public DbSet<TeacherProfile> TeacherProfiles { get; set; }
+        public DbSet<StudentProfile> StudentProfiles { get; set; }
         // Связи много ко многим
         public DbSet<UserGroup> UserGroup { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
@@ -28,6 +29,8 @@ namespace AcademicProgressTracker.Persistence
         // Занятия
         public DbSet<Lesson> Lessons { get; set; }
         public DbSet<LabLesson> LabLessons { get; set; }
+        public DbSet<LectureLesson> LectureLessons { get; set; }
+        public DbSet<PracticeLesson> PracticeLessons { get; set; }
         public DbSet<LessonUserStatus> LessonUserStatuses { get; set; }
         // Маппинг предметов
         public DbSet<SubjectMapping> SubjectMappings { get; set; }

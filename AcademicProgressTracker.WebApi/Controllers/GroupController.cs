@@ -1,5 +1,7 @@
 ﻿using AcademicProgressTracker.Application.Common.DTOs;
+using AcademicProgressTracker.Application.Common.Interfaces;
 using AcademicProgressTracker.Application.Common.Interfaces.Services;
+using AcademicProgressTracker.Application.Common.Schedule;
 using AcademicProgressTracker.Application.Curriculum;
 using AcademicProgressTracker.Domain.Entities;
 using AcademicProgressTracker.Persistence;
@@ -16,13 +18,15 @@ namespace AcademicProgressTracker.WebApi.Controllers
     {
         private readonly AcademicProgressDataContext _dataContext;
         private readonly HttpClient _httpClient;
-        private readonly IAuthService _authService;     // нужен для регистрации новых преподавателей (в будущем убрать в другой сервис)
+        private readonly IAuthService _authService;     // нужен для регистрации новых преподавателей и студентов (в будущем убрать в другой сервис)
+        private readonly IScheduleAnalyzer _scheduleAnalyzer;
 
-        public GroupController(AcademicProgressDataContext dataContext, HttpClient httpClient, IAuthService authService)
+        public GroupController(AcademicProgressDataContext dataContext, HttpClient httpClient, IAuthService authService, IScheduleAnalyzer scheduleAnalyzer)
         {
             _dataContext = dataContext;
             _httpClient = httpClient;
             _authService = authService;
+            _scheduleAnalyzer = scheduleAnalyzer;
         }
 
         // Загрузка новой группы
@@ -37,8 +41,41 @@ namespace AcademicProgressTracker.WebApi.Controllers
                     excelCurriculum.CopyTo(memoryStream);
                     var curriculumExcelDocumentBytes = memoryStream.ToArray();
                     var group = new Group(Uri.UnescapeDataString(groupName), curriculumExcelDocumentBytes);
-                    await _dataContext.AddAsync(group);
-                    await _dataContext.SaveChangesAsync();
+
+                    // ДОБАВЛЯЕМ СТУДЕНТОВ ДЛЯ ГРУППЫ ДИПРБ_41/1
+                    // ЭТО ГОВНОКОД! ЭТО ПРОСТО ДЛЯ ТЕСТА ДОБАВЛЯЮТСЯ СТУДЕНТЫ ДЛЯ ГРУППЫ НА СКОРУЮ РУКУ!! В БУДУЩЕМ СТУДЕНТОВ ДОБАВЛЯТЬ ВРУЧНУЮ ИЛИ С СЕРВЕРА!!
+                    if (group.Name == "ДИПРБ_41/1")
+                    {
+                        var users = new List<User>();
+                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Ермолаев Иван"));
+                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Усманов Азим"));
+                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Сафонов Артем"));
+                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Линев Роман"));
+                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Гогуев Керам"));
+                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Лиджигоряев Владимир"));
+                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Горст Сергей"));
+                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Матросов Данила"));
+                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Мартынов Илья"));
+                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Хамидов Иса"));
+                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Сангаджиев Очир"));
+                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Машков Михаил"));
+                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Бекбутаев Эдуард"));
+                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Сапрыкина Ольга"));
+                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Морозова Мария"));
+
+                        foreach (var user in users)
+                        {
+                            user.Profiles.Add(new StudentProfile { User = user, Name = user.Email });
+                            await _dataContext.UserGroup.AddAsync(new Persistence.Models.UserGroup { User = user, Role = user.Roles.First(), Group = group });
+                        }
+
+                        await _dataContext.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        await _dataContext.AddAsync(group);
+                        await _dataContext.SaveChangesAsync();
+                    }
                     return Ok($"Учебный план {excelCurriculum.FileName} успешно загружен для группы {group.Name}.");
                 }
             }
@@ -104,16 +141,27 @@ namespace AcademicProgressTracker.WebApi.Controllers
                 if (testSubject != null)
                     return BadRequest($"У группы {group.Name} уже загружены дисциплины за {commonSemester} семестр!");
 
-                // 1. Добавляем предметы и их лабораторные занятия (если предмета нет в учебном плане, то и лабораторных занятий нет)
+                // 1. Добавляем предметы и их лабораторные занятия и статусы к ним для каждого студента (если предмета нет в учебном плане, то и лабораторных занятий нет)
                 var subjectsToDatabase = new List<Subject>();
+                var studentsOfGroup = await _dataContext.UserGroup.Where(x => x.GroupId == groupId && x.Role!.Name == "Student")
+                    .Select(x => x.User)
+                    .ToListAsync();
+
                 foreach (var subjectApiTable in subjectsInApiTable)
                 {
-                    // Добавляем лабораторные занятия для предмета
-                    var labLessons = new List<Lesson>();
+                    // Добавляем занятия для предмета
+                    var lessons = new List<Lesson>();
                     var subjectCurriculum = subjectsMappings.Single(x => x.SubjectNameApiTable == subjectApiTable).SubjectNameCurriculum;
-                    int labLessonCount = subjectCurriculum == null ? 0 : curriculumAnalyzer.GetNumberOfLaboratoryLesson(subjectCurriculum, commonSemester);
-                    for (int i = 0; i < labLessonCount; i++)
-                        labLessons.Add(new LabLesson { Number = i });
+
+                    if (subjectCurriculum != null)
+                    {
+                        int labLessonCount = curriculumAnalyzer.GetNumberOfLaboratoryLesson(subjectCurriculum, commonSemester);
+                        int lectureLessonCount = curriculumAnalyzer.GetNumberOfLectureLesson(subjectCurriculum, commonSemester);
+                        int practiceLessonCount = curriculumAnalyzer.GetNumberOfPracticeLesson(subjectCurriculum, commonSemester);
+
+                        lessons = _scheduleAnalyzer.GetLessonsOfSubjectFromLessonsDTO(new DateOnly(2024, 2, 16), groupLessonsDTO.Lessons, subjectApiTable,
+                            labLessonCount, lectureLessonCount, practiceLessonCount);
+                    }
 
                     // Добавляем предметы
                     subjectsToDatabase.Add(new Subject
@@ -121,7 +169,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
                         Name = subjectApiTable,
                         Group = group,
                         Semester = commonSemester,
-                        Lessons = labLessons
+                        Lessons = lessons
                     });
                 }
                 // Добавляем предметы в БД
@@ -252,8 +300,6 @@ namespace AcademicProgressTracker.WebApi.Controllers
                     var labLessons = new List<Lesson>();
                     var subjectCurriculum = subjectsMappings.Single(x => x.SubjectNameApiTable == subjectApiTable).SubjectNameCurriculum;
                     int labLessonCount = subjectCurriculum == null ? 0 : curriculumAnalyzer.GetNumberOfLaboratoryLesson(subjectCurriculum, commonSemester);
-                    for (int i = 0; i < labLessonCount; i++)
-                        labLessons.Add(new LabLesson { Number = i });
 
                     // Добавляем предметы
                     subjectsToDatabase.Add(new Subject

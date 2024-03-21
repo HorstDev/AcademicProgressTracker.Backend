@@ -3,7 +3,7 @@
     public class LessonUserStatus
     {
         public Guid Id { get; set; }
-        public bool IsVisited { get; set; }
+        public bool IsVisited { get; set; } = false;
         
         public Guid UserId { get; set; }
         public User? User { get; set; }

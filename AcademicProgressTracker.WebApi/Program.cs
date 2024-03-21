@@ -13,6 +13,7 @@ using AcademicProgressTracker.Application.Common.Interfaces.Repositories;
 using AcademicProgressTracker.Persistence.Repositories;
 using AcademicProgressTracker.Application.Common.Interfaces.Services;
 using AcademicProgressTracker.WebApi.Services;
+using AcademicProgressTracker.Application.Common.Schedule;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +30,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+
+builder.Services.AddScoped<IScheduleAnalyzer, ScheduleAnalyzer>();
 
 // Ignore cycles
 builder.Services.AddControllers().AddJsonOptions(options =>

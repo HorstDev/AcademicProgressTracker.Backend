@@ -18,4 +18,14 @@
         public Guid? LabWorkId { get; set; }            // Лаб. занятие может и не относиться к лабораторной работе 
         public LabWork? LabWork { get; set; }
     }
+
+    public class LectureLesson : Lesson
+    {
+
+    }
+
+    public class PracticeLesson : Lesson
+    {
+
+    }
 }

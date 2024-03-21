@@ -54,6 +54,20 @@ namespace AcademicProgressTracker.WebApi.Services
             }
         }
 
+        // Получение пользователя студента с установленным логином и паролем 12345
+        // P.S. сейчас используется логин и пароль == name, это для удобства, пока нет отправки ссылки с токеном преподавателю для смены пароля,
+        // чтобы можно было заходить за студента во время разработки. ЭТО ИСПРАВИТЬ В БУДУЩЕМ ЧТОБЫ БЫЛИ РАНДОМНЫЕ ДАННЫЕ
+        public async Task<User> GetStudentUserWithRandomLoginAndPasswordAsync(string name)
+        {
+            _passwordHasher.CreateHash("12345", out byte[] passwordHash, out byte[] passwordSalt);
+            Role studentRole = (await _roleRepository.GetByNameAsync("Student"))!;
+
+            var user = new User(name, passwordHash, passwordSalt);
+            user.Roles.Add(studentRole);
+
+            return user;
+        }
+
         // Получение пользователя преподавателя с установленным рандомным логином и паролем
         // P.S. сейчас используется логин и пароль == name, это для удобства, пока нет отправки ссылки с токеном преподавателю для смены пароля,
         // чтобы можно было заходить за преподавателя во время разработки. ЭТО ИСПРАВИТЬ В БУДУЩЕМ ЧТОБЫ БЫЛИ РАНДОМНЫЕ ДАННЫЕ

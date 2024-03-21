@@ -11,4 +11,9 @@
     {
         public string Name { get; set; } = string.Empty;
     }
+
+    public class StudentProfile : Profile
+    {
+        public string Name { get; set; } = string.Empty;
+    }
 }
