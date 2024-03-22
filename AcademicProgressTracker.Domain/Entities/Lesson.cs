@@ -4,8 +4,8 @@
     {
         public Guid Id { get; set; }
         public int Number { get; set; }
-        public DateTime? Start { get; set; }
-        public DateTime? End { get; set; }
+        public DateTime Start { get; set; }
+        public DateTime End { get; set; }
         public bool IsStarted { get; set; } = false;
 
         public Guid SubjectId { get; set; }
