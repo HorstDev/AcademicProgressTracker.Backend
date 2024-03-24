@@ -1,6 +1,8 @@
 ﻿using AcademicProgressTracker.Application.Common.ViewModels.LabWork;
+using AcademicProgressTracker.Application.Common.ViewModels.Lesson;
 using AcademicProgressTracker.Domain.Entities;
 using AcademicProgressTracker.Persistence;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,75 +21,161 @@ namespace AcademicProgressTracker.WebApi.Controllers
             _dataContext = dataContext;
         }
 
-        [HttpGet("students-with-labs/{subjectId}")]
-        public async Task<ActionResult<IEnumerable<LabWorksWithWtudentViewModel>>> GetStudentsWithLabWorksBySubjectId(Guid subjectId)
+        // Добавление ЛР
+        [HttpPost]
+        public async Task<ActionResult<LabWork>> Post(AddLabWorkViewModel labWorkVm)
         {
-            var labWorkStatuses = await _dataContext.LabWorkStatuses
-                .Where(x => x.LabWork!.SubjectId == subjectId)
-                .Include(x => x.LabWork)
-                .Include(x => x.User)
+            // Выбираем лабораторные занятия, которые были указаны как привязанные к лабораторной работе
+            var labLessons = await _dataContext.LabLessons.Where(labLesson => labWorkVm.LabLessonsIds.Contains(labLesson.Id))
+                .Include(x => x.Subject)
                 .ToListAsync();
 
-            var studentsWithLabWorks = labWorkStatuses
+            // Если лабораторных занятий, указанных на клиенте не нашлось
+            if (!labLessons.Any())
+                return BadRequest("Лабораторные занятия не указаны!");
+
+            // Выбираем id группы, в которой происходит добавление ЛР
+            var groupId = labLessons[0].Subject!.GroupId;
+            // Выбираем всех студентов, которые состоят в группе, для которой добавляется лабораторная работа
+            var studentIdsInGroup = await _dataContext.UserGroup.Where(x => x.GroupId == groupId && x.Role!.Name == "Student")
+                .Select(x => x.UserId)
+                .ToListAsync();
+
+            // Для каждого пользователя в группе добавляем статус выполнения лабораторной работы
+            var userStatuses = new List<LabWorkUserStatus>();
+            foreach(var studentUserId in studentIdsInGroup)
+            {
+                userStatuses.Add(new LabWorkUserStatus
+                {
+                    UserId = studentUserId,
+                    IsDone = false
+                });
+            }
+
+            var labWork = new LabWork
+            {
+                Number = labWorkVm.Number,
+                Score = labWorkVm.Score,
+                UserStatuses = userStatuses,
+                Lessons = labLessons
+            };
+
+            await _dataContext.LabWorks.AddAsync(labWork);
+            await _dataContext.SaveChangesAsync();
+
+            return Created();
+        }
+
+        // Удаление ЛР
+        [HttpDelete("{labWorkId}")]
+        public async Task<ActionResult<LabWork>> Delete(Guid labWorkId)
+        {
+            var labWork = await _dataContext.LabWorks
+                .Include(labWork => labWork.Lessons)
+                .SingleAsync(labWork => labWork.Id == labWorkId);
+
+            // Обнуляем для каждого занятия LabWorkId, чтобы без проблем удалить лабораторную работу
+            foreach(var labLesson in labWork.Lessons)
+            {
+                labLesson.LabWorkId = null;
+            }
+
+            // Обновляем у занятий LabWorkId = null
+            _dataContext.Lessons.UpdateRange(labWork.Lessons);
+            // Удаляем лабораторную работу
+            _dataContext.LabWorks.Remove(labWork);
+            await _dataContext.SaveChangesAsync();
+
+            return Ok();
+        }
+
+        // Получение списка лаб у определенного предмета
+        [HttpGet("{subjectId}/get-many"), Authorize(Roles = "Teacher")]
+        public async Task<ActionResult<IEnumerable<LabWorkViewModel>>> GetRange(Guid subjectId)
+        {
+            // Получаем лабы определенного предмета
+            var labWorks = await _dataContext.LabWorks
+                .Where(labWork => labWork.Lessons.Any(lesson => lesson.SubjectId == subjectId))
+                .Distinct()
+                .Include(labWork => labWork.Lessons)
+                .OrderBy(labWork => labWork.Number)
+                .ToListAsync();
+
+            // Маппим данные
+            var labWorksVm = new List<LabWorkViewModel>();
+            foreach (var labWork in labWorks)
+            {
+                // Извлекаем все занятия для лабы
+                var labWorkLessonsVm = labWork.Lessons.Select(lesson => new LabLessonViewModel
+                {
+                    Id = lesson.Id,
+                    Number = lesson.Number,
+                    HasLabWork = lesson.LabWorkId != null,
+                    Start = lesson.Start,
+                    End = lesson.End,
+                    IsStarted = lesson.IsStarted,
+                })
+                    .OrderBy(l => l.Number)
+                    .ToList();
+
+                // Добавляем лабы в массив viewModel
+                labWorksVm.Add(new LabWorkViewModel
+                {
+                    Id = labWork.Id,
+                    Number = labWork.Number,
+                    Score = labWork.Score,
+                    Lessons = labWorkLessonsVm
+                });
+            }
+
+            return labWorksVm;
+        }
+
+        [HttpGet("{subjectId}/students-labWork-statuses")]
+        public async Task<ActionResult<IEnumerable<LabWorksWithWtudentViewModel>>> GetStudentsWithLabWorkStatuses(Guid subjectId)
+        {
+            // Получаем статусы лабораторных работ вместе с пользователями
+            var labWorkUserStatuses = await _dataContext.LabWorkUserStatuses
+                .Where(labWorkUserStatus => labWorkUserStatus.LabWork!.Lessons.Any(lesson => lesson.SubjectId == subjectId))
+                .Include(labWorkUserStatus => labWorkUserStatus.User)
+                    .ThenInclude(user => user!.Profiles)
+                .Include(labWorkUserStatus => labWorkUserStatus.LabWork)
+                .ToListAsync();
+
+            var studentsWithLabWorkStatuses = labWorkUserStatuses
                 .GroupBy(x => x.User)
                 .Select(group => new LabWorksWithWtudentViewModel
                 {
-                    Name = group.Key!.Email,
-                    LabWorks = group.Select(lws => new LabWorkStatusViewModel
+                    // Получаем имя студента, извлекая его из профиля студента
+                    Name = group.Key!.Profiles.OfType<StudentProfile>().Select(x => x.Name).First(),
+
+                    // И статусы лаб
+                    LabWorkUserStatuses = group.Select(lws => new LabWorkUserStatusViewModel
                     {
                         Id = lws.Id,
                         Number = lws.LabWork!.Number,
-                        IsCompleted = lws.IsCompleted,
-                        MaximumScore = lws.LabWork.MaximumScore,
-                        CurrentScore = lws.CurrentScore
+                        IsDone = lws.IsDone,
+                        Score = lws.LabWork.Score,
                     }).OrderBy(x => x.Number).ToList()
-                });
+                }).OrderBy(lwWithStudentsVm => lwWithStudentsVm.Name);
 
-            return Ok(studentsWithLabWorks);
+            return Ok(studentsWithLabWorkStatuses);
         }
 
-        [HttpPut("lab-completed")]
-        public async Task<ActionResult<LabWorkStatusViewModel>> MakeLabWorkDone(LabWorkStatusViewModel labWorkStatusVm)
+        [HttpPut("lab-work-status-change-state")]
+        public async Task<ActionResult<LabWorkUserStatusViewModel>> ChangeStateOfLabWorkStatus(LabWorkUserStatusViewModel labWorkUserStatusViewModel)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var labWorkUserStatus = await _dataContext.LabWorkUserStatuses
+                .SingleAsync(lwStatus => lwStatus.Id == labWorkUserStatusViewModel.Id);
 
-            // Передаем в сервис labWorkStatusVm
-
-            var labWorkStatus = await _dataContext.LabWorkStatuses
-                .Include(x => x.LabWork)
-                .Include(x => x.User)
-                .SingleAsync(x => x.Id == labWorkStatusVm.Id);
-
-            if (labWorkStatusVm.CurrentScore <= labWorkStatus.LabWork!.MaximumScore && labWorkStatusVm.CurrentScore > 0)
-            {
-                labWorkStatus.CurrentScore = labWorkStatusVm.CurrentScore;
-                labWorkStatus.IsCompleted = labWorkStatusVm.IsCompleted = true;
-            }
-            else
-                return BadRequest();
-
-            _dataContext.LabWorkStatuses.Update(labWorkStatus);
+            // Меняем статус у ЛР
+            labWorkUserStatus.IsDone = !labWorkUserStatus.IsDone;
+            _dataContext.Update(labWorkUserStatus);
             await _dataContext.SaveChangesAsync();
 
-            return Ok(labWorkStatusVm);
-        }
-
-        [HttpPut("make-lab-not-completed/{labWorkStatusId}")]
-        public async Task<ActionResult<LabWorkStatusViewModel>> MakeLabNotDone(Guid labWorkStatusId)
-        {
-            var labWorkStatus = await _dataContext.LabWorkStatuses
-                .Include(x => x.LabWork)
-                .Include(x => x.User)
-                .SingleAsync(x => x.Id == labWorkStatusId);
-
-            labWorkStatus.IsCompleted = false;
-            labWorkStatus.CurrentScore = 0;
-
-            _dataContext.LabWorkStatuses.Update(labWorkStatus);
-            await _dataContext.SaveChangesAsync();
-
-            return Ok(labWorkStatus);
+            // Меняем статус у viewModel
+            labWorkUserStatusViewModel.IsDone = labWorkUserStatus.IsDone;
+            return Ok(labWorkUserStatusViewModel);
         }
     }
 }

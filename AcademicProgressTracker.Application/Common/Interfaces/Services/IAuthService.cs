@@ -20,5 +20,11 @@ namespace AcademicProgressTracker.Application.Common.Interfaces.Services
         /// <param name="name">Имя преподавателя</param>
         /// <returns></returns>
         Task<User> GetTeacherUserWithRandomLoginAndPasswordAsync(string name);
+        /// <summary>
+        /// Получение пользователя "студент"
+        /// </summary>
+        /// <param name="name">Логин студента</param>
+        /// <returns></returns>
+        Task<User> GetStudentUserWithRandomLoginAndPasswordAsync(string name);
     }
 }

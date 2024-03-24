@@ -1,10 +1,9 @@
 ﻿namespace AcademicProgressTracker.Domain.Entities
 {
-    public class LabWorkStatus
+    public class LabWorkUserStatus
     {
         public Guid Id { get; set; }
-        public bool IsCompleted { get; set; } = false;
-        public decimal CurrentScore { get; set; } 
+        public bool IsDone { get; set; } = false;
 
         public Guid LabWorkId { get; set; }
         public LabWork? LabWork { get; set; }

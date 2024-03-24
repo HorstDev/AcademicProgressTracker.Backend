@@ -22,50 +22,5 @@ namespace AcademicProgressTracker.WebApi.Controllers
         {
             _dataContext = dataContext;
         }
-
-        // МЕТОД НЕВЕРНЫЙ, ПЕРЕДЕЛАТЬ (Т.К. МЫ ТЕПЕРЬ НЕ СВЯЗЫВАЕМ ПРЕПОДАВАТЕЛЕЙ И ГРУППЫ В USERGROUPS, СМЫСЛА В ЭТОМ НЕТ)
-        [HttpGet("myGroups")]
-        public async Task<IEnumerable<GroupViewModel>> GetMyGroups()
-        {
-            var teacherId = new Guid(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            // ТУТ ОШИБКА!! НАДО ЕЩЕ ПРОВЕРИТЬ, ЧТОБЫ РОЛЬ БЫЛА TEACHER
-            var groups = await _dataContext.UserGroup
-                .Where(x => x.UserId == teacherId)
-                .Select(x => x.Group)
-                .ToListAsync();
-
-            var groupsView = new List<GroupViewModel>();
-            foreach (var group in groups)
-            {
-                if (group is not null)
-                {
-                    groupsView.Add(new GroupViewModel { Id = group.Id, Name = group.Name });
-                }
-            }
-
-            return groupsView;
-        }
-
-        [HttpGet("mySubjects/{groupId}")]
-        public async Task<IEnumerable<SubjectViewModel>> GetMySybjectsByGroupId(Guid groupId)
-        {
-            var teacherId = new Guid(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-            var subjects = await _dataContext.TeacherSubject
-                .Where(x => x.UserId == teacherId)
-                .Select(x => x.Subject)
-                .Where(x => x!.GroupId == groupId)
-                .ToListAsync();
-
-            var subjectsView = new List<SubjectViewModel>();
-            foreach (var subject in subjects)
-            {
-                if (subject is not null)
-                {
-                    subjectsView.Add(new SubjectViewModel { Id = subject.Id, Name = subject.Name });
-                }
-            }
-
-            return subjectsView;
-        }
     }
 }

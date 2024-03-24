@@ -2,12 +2,11 @@
 
 namespace AcademicProgressTracker.Application.Common.ViewModels.LabWork
 {
-    public class LabWorkStatusViewModel
+    public class LabWorkUserStatusViewModel
     {
         public Guid Id { get; set; }
         public int Number { get; set; }
-        public decimal CurrentScore { get; set; }
-        public decimal MaximumScore { get; set; }
-        public bool IsCompleted { get; set; }
+        public decimal Score { get; set; }
+        public bool IsDone { get; set; }
     }
 }

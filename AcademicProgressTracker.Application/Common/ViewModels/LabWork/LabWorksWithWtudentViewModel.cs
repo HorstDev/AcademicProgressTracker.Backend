@@ -3,6 +3,6 @@
     public class LabWorksWithWtudentViewModel
     {
         public string Name { get; set; } = string.Empty;
-        public List<LabWorkStatusViewModel> LabWorks { get; set; } = new();
+        public List<LabWorkUserStatusViewModel> LabWorkUserStatuses { get; set; } = new();
     }
 }

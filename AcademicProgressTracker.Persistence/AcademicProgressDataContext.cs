@@ -10,17 +10,29 @@ namespace AcademicProgressTracker.Persistence
 {
     public class AcademicProgressDataContext : DbContext
     {
+        // Аккаунты, роли, профили
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Profile> Profiles { get; set; }
         public DbSet<TeacherProfile> TeacherProfiles { get; set; }
+        public DbSet<StudentProfile> StudentProfiles { get; set; }
+        // Связи много ко многим
         public DbSet<UserGroup> UserGroup { get; set; }
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<TeacherSubject> TeacherSubject { get; set; }
+        // Прочее
         public DbSet<Group> Groups { get; set; }
         public DbSet<Subject> Subjects { get; set; }
+        // Лабораторные
         public DbSet<LabWork> LabWorks { get; set; }
-        public DbSet<LabWorkStatus> LabWorkStatuses { get; set; }
+        public DbSet<LabWorkUserStatus> LabWorkUserStatuses { get; set; }
+        // Занятия
+        public DbSet<Lesson> Lessons { get; set; }
+        public DbSet<LabLesson> LabLessons { get; set; }
+        public DbSet<LectureLesson> LectureLessons { get; set; }
+        public DbSet<PracticeLesson> PracticeLessons { get; set; }
+        public DbSet<LessonUserStatus> LessonUserStatuses { get; set; }
+        // Маппинг предметов
         public DbSet<SubjectMapping> SubjectMappings { get; set; }
 
         public AcademicProgressDataContext(DbContextOptions<AcademicProgressDataContext> options) 
