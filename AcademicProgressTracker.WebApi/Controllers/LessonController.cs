@@ -74,7 +74,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return Ok(lessonsViewModels);
         }
 
-        // Возвращает занятия, которые проводятся преподавателем в данный момент
+        // Возвращает статусы + занятия, которые проводятся преподавателем в данный момент
         [HttpGet("lessons-in-progress-user-statuses"), Authorize(Roles = "Teacher")]
         public async Task<ActionResult<IEnumerable<LessonUserStatusesViewModel>>> GetCurrentLessonsWithUserStatuses()
         {
@@ -100,6 +100,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
                         {
                             Id = userStatus.Id,
                             IsVisited = userStatus.IsVisited,
+                            Score = userStatus.Score,
                         }
                     })
                     .OrderBy(lessonUserStatusWithUserVm => lessonUserStatusWithUserVm.StudentName)
@@ -210,6 +211,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
                         User = user,
                         Lesson = lesson,
                         IsVisited = false,
+                        Score = 0,
                     });
                 }
             }
@@ -285,6 +287,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
             {
                 var lessonStatusVm = lessonsUserStatusesVm.Single(x => x.Id == lessonStatus.Id);
                 lessonStatus.IsVisited = lessonStatusVm.IsVisited;
+                lessonStatus.Score = lessonStatusVm.Score;
             }
             await _dataContext.SaveChangesAsync();
 
@@ -293,6 +296,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
             {
                 Id = lessonStatus.Id,
                 IsVisited = lessonStatus.IsVisited,
+                Score = lessonStatus.Score,
             }).ToList();
             return updatedLessonStatusesVm;
         }
