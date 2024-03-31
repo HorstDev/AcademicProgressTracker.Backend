@@ -6,6 +6,8 @@
         public int Number { get; set; }
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
+        public DateTime RealStart { get; set; }
+        public DateTime RealEnd { get; set; }
         public bool IsStarted { get; set; } = false;
 
         public Guid SubjectId { get; set; }

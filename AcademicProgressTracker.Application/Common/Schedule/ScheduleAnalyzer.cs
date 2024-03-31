@@ -7,15 +7,27 @@ namespace AcademicProgressTracker.Application.Common.Schedule
     public class ScheduleAnalyzer : IScheduleAnalyzer
     {
         // Номер пары и соответствующее время начала пары
-        private Dictionary<int, TimeOnly> StartTimes { get; set; } = new Dictionary<int, TimeOnly>
+        private List<TimeOnly> StartTimes { get; set; } = new List<TimeOnly>
         {
-            { 0, new TimeOnly(8, 30) },
-            { 1, new TimeOnly(10, 15) },
-            { 2, new TimeOnly(12, 0) },
-            { 3, new TimeOnly(14, 0) },
-            { 4, new TimeOnly(15, 45) },
-            { 5, new TimeOnly(17, 30) },
-            { 6, new TimeOnly(19, 15) },
+            { new TimeOnly(8, 30) },
+            { new TimeOnly(10, 15) },
+            { new TimeOnly(12, 0) },
+            { new TimeOnly(14, 0) },
+            { new TimeOnly(15, 45) },
+            { new TimeOnly(17, 30) },
+            { new TimeOnly(19, 15) },
+        };
+
+        // Номер пары и соответствующее время начала пары
+        private List<TimeOnly> EndTimes { get; set; } = new List<TimeOnly>
+        {
+            { new TimeOnly(10, 00) },
+            { new TimeOnly(11, 45) },
+            { new TimeOnly(13, 30) },
+            { new TimeOnly(15, 30) },
+            { new TimeOnly(17, 15) },
+            { new TimeOnly(19, 00) },
+            { new TimeOnly(20, 45) },
         };
 
         /// <summary>
@@ -204,6 +216,24 @@ namespace AcademicProgressTracker.Application.Common.Schedule
             }
 
             return practiceLessonResult;
+        }
+
+        public void CurrentLessonDateTime(out DateTime start, out DateTime end)
+        {
+            var currentTime = new TimeOnly(DateTime.Now.Hour, DateTime.Now.Minute);
+            start = DateTime.MinValue;
+            end = DateTime.MinValue;
+
+            // Определяем начало и конец пары
+            for (int i = 0; i < StartTimes.Count; i++)
+            {
+                if (currentTime >= StartTimes[i] && currentTime <= EndTimes[i])
+                {
+                    start = new DateTime(new DateOnly(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day), StartTimes[i]);
+                    end = new DateTime(new DateOnly(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day), EndTimes[i]);
+                    return;
+                }
+            }
         }
     }
 }
