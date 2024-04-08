@@ -2,6 +2,7 @@
 using AcademicProgressTracker.Application.Common.Interfaces;
 using AcademicProgressTracker.Application.Common.Interfaces.Services;
 using AcademicProgressTracker.Application.Common.Schedule;
+using AcademicProgressTracker.Application.Common.ViewModels.Group;
 using AcademicProgressTracker.Application.Curriculum;
 using AcademicProgressTracker.Domain.Entities;
 using AcademicProgressTracker.Persistence;
@@ -27,6 +28,21 @@ namespace AcademicProgressTracker.WebApi.Controllers
             _httpClient = httpClient;
             _authService = authService;
             _scheduleAnalyzer = scheduleAnalyzer;
+        }
+
+        [HttpGet("all-groups")]
+        public async Task<ActionResult<IEnumerable<GroupViewModel>>> GetAllGroups()
+        {
+            var allGroups = await _dataContext.Groups.OrderBy(group => group.Name).ToListAsync();
+
+            var allGroupsVm = allGroups.Select(group => new GroupViewModel
+            {
+                Id = group.Id,
+                Name = group.Name,
+                DateTimeOfUpdateDependenciesFromServer = group.DateTimeOfUpdateDependenciesFromServer,
+            }).ToList();
+
+            return allGroupsVm;
         }
 
         // Загрузка новой группы
@@ -76,7 +92,8 @@ namespace AcademicProgressTracker.WebApi.Controllers
                         await _dataContext.AddAsync(group);
                         await _dataContext.SaveChangesAsync();
                     }
-                    return Ok($"Учебный план {excelCurriculum.FileName} успешно загружен для группы {group.Name}.");
+                    // NEW GROUP URI. MAKE IT LATER
+                    return CreatedAtAction("Create", new { id = group.Id }, group);
                 }
             }
 
@@ -89,6 +106,8 @@ namespace AcademicProgressTracker.WebApi.Controllers
         {
             GroupWithLessonsDTO? groupLessonsDTO;
             var group = await _dataContext.Groups.SingleAsync(x => x.Id == groupId);
+            // Обновляем дату последнего обновления информации с сервера
+            group.DateTimeOfUpdateDependenciesFromServer = DateTime.Now;
             var response = await _httpClient.GetAsync($"https://apitable.astu.org/search/get?q={group.Name}&t=group");
             if(response.IsSuccessStatusCode)
                 groupLessonsDTO = await response.Content.ReadFromJsonAsync<GroupWithLessonsDTO>();
@@ -213,7 +232,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
                 await _dataContext.Users.AddRangeAsync(teacherUsersToDatabase);
                 // Сохраняем все изменения, которые были сделаны
                 await _dataContext.SaveChangesAsync();
-                return Ok("Успешно загружено в базу данных");
+                return Created();
             }
 
             return StatusCode(502, "Bad Gateway");
