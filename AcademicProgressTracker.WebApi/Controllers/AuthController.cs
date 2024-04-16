@@ -19,12 +19,6 @@ namespace AcademicProgressTracker.WebApi.Controllers
             _authService = authService;
         }
 
-        [HttpGet, Authorize(Roles = "Student")]
-        public ActionResult<string> GetMe()
-        {
-            return Ok("gdfgdfgdfgdfgdfgdfg");
-        }
-
         [HttpPost("register")]
         public async Task<ActionResult> RegisterAsync([FromBody] RegisterStudentViewModel request)
         {
@@ -53,6 +47,22 @@ namespace AcademicProgressTracker.WebApi.Controllers
             var accessToken = newAuthTokens.AccessToken.Token;
 
             return Ok(accessToken);
+        }
+
+        // Получение access-токена на 48 часов
+        [HttpGet("access-token-48-hours/{userId}")]
+        public async Task<ActionResult<string>> GetAuthTokenFor48Hours(Guid userId)
+        {
+            var authToken = await _authService.GetAccessTokenFor48HoursAsync(userId);
+            return Ok(authToken.Token);
+        }
+
+        // Изменение данных аккаунта с помощью access токена
+        [HttpPut("change-account-data/{accessToken}")]
+        public async Task<ActionResult> ChangeAccountDataByAccessToken(string accessToken, UserDto userDto)
+        {
+            await _authService.ChangeAccountDataByAccessToken(accessToken, userDto);
+            return Ok();
         }
 
         private void SetRefreshTokenToCookies(RefreshToken refreshToken)

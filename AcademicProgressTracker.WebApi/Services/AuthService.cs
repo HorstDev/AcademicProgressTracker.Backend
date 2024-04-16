@@ -6,6 +6,7 @@ using AcademicProgressTracker.Application.Common.Interfaces.Services;
 using AcademicProgressTracker.Application.Common.ViewModels.Auth;
 using AcademicProgressTracker.Domain.Entities;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace AcademicProgressTracker.WebApi.Services
 {
@@ -24,6 +25,60 @@ namespace AcademicProgressTracker.WebApi.Services
             _userRepository = userRepository;
             _roleRepository = roleRepository;
             _passwordHasher = passwordHasher;
+        }
+
+        public async Task<AccessToken> GetAccessTokenFor48HoursAsync(Guid userId)
+        {
+            try
+            {
+                var user = await _userRepository.GetByIdAsync(userId);
+                if (user == null)
+                {
+                    throw new BadHttpRequestException("Пользователь не найден!");
+                }
+                var authToken = CreateJwt(user, 48 * 60);
+                return authToken;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public async Task ChangeAccountDataByAccessToken(string accessToken, UserDto userDto)
+        {
+            try
+            {
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var token = tokenHandler.ReadJwtToken(accessToken);
+                Guid userId = new Guid(token.Claims.FirstOrDefault(claim => claim.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")!.Value);
+                var user = await _userRepository.GetByIdAsync(userId);
+                if (user == null)
+                    throw new BadHttpRequestException("Пользователь не найден!");
+
+                // Проверяем логин и пароль на корректность
+                if (string.IsNullOrEmpty(userDto.Email) || string.IsNullOrEmpty(userDto.Password))
+                    throw new BadHttpRequestException("Некорректный логин или пароль!");
+
+                // Проверяем, есть ли аккаунт с таким email
+                var checkAccount = await _userRepository.GetByEmailAsync(userDto.Email);
+                if (checkAccount != null)
+                    throw new BadHttpRequestException("Пользователь с такими данными уже существует!");
+
+                // Проверяем, истек ли токен
+                if (token.ValidTo < DateTime.Now)
+                    throw new BadHttpRequestException("Действие токена истекло!");
+
+                _passwordHasher.CreateHash(userDto.Password, out byte[] passwordHash, out byte[] passwordSalt);
+                user.Email = userDto.Email;
+                user.PasswordHash = passwordHash;
+                user.PasswordSalt = passwordSalt;
+                await _userRepository.UpdateAsync(user);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
 
         public async Task<User> RegisterStudentUserAsync(RegisterStudentViewModel request)
@@ -97,7 +152,7 @@ namespace AcademicProgressTracker.WebApi.Services
                     throw new BadHttpRequestException("Неверный пароль!");
                 }
 
-                var accessToken = CreateJwt(user);
+                var accessToken = CreateJwt(user, 30);
                 var refreshToken = new RefreshToken(30);
 
                 // При каждой авторизации пользователя обновляем ему refresh token в бд
@@ -132,7 +187,7 @@ namespace AcademicProgressTracker.WebApi.Services
                     throw new UnauthorizedAccessException("Срок действия refresh токена истек!");
                 }
 
-                var accessToken = CreateJwt(user);
+                var accessToken = CreateJwt(user, 30);
                 var newRefreshToken = new RefreshToken(30);
 
                 // Устанавливаем новый refresh токен в бд
@@ -150,12 +205,12 @@ namespace AcademicProgressTracker.WebApi.Services
             }
         }
 
-        private AccessToken CreateJwt(User user)
+        private AccessToken CreateJwt(User user, int lifeTimeInMinutes)
         {
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
                 _configuration.GetSection("AppSettings:JwtSecret").Value!));
 
-            var accessToken = new AccessToken(user, key, 30);
+            var accessToken = new AccessToken(user, key, lifeTimeInMinutes);
 
             return accessToken;
         }

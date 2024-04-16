@@ -4,6 +4,6 @@
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public int Course { get; set; }
+        public DateTime DateTimeOfUpdateDependenciesFromServer { get; set; }
     }
 }

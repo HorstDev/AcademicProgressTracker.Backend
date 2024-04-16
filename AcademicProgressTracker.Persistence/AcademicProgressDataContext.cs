@@ -78,7 +78,7 @@ namespace AcademicProgressTracker.Persistence
         {
             return new SubjectMapping[]
             {
-                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "История россии", SubjectNameCurriculum = "История России" },
+                new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "История России", SubjectNameCurriculum = "История России" },
                 new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Управление программными проектами", SubjectNameCurriculum = "Управление программными проектами" },
                 new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Самостоятельная работа студента", SubjectNameCurriculum = null },
                 new SubjectMapping { Id = Guid.NewGuid(), SubjectNameApiTable = "Экономика программной инженерии", SubjectNameCurriculum = "Экономика программной инженерии" },

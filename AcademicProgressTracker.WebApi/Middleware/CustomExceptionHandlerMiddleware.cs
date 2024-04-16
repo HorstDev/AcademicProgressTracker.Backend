@@ -38,7 +38,7 @@ namespace AcademicProgressTracker.WebApi.Middleware
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)code;
-            var result = JsonSerializer.Serialize(new { error = exception.Message });
+            var result = JsonSerializer.Serialize(new { message = exception.Message });
 
             return context.Response.WriteAsync(result);
         }

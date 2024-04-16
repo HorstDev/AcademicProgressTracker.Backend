@@ -7,6 +7,8 @@
         public string GroupName { get; set; } = string.Empty;
         public DateTime Start { get; set; }
         public DateTime End { get; set; }
+        public DateTime RealStart { get; set; }
+        public DateTime RealEnd { get; set; }
         public string Type { get; set; } = string.Empty;
         public bool IsStarted { get; set; }
     }
