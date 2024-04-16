@@ -30,6 +30,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
             _scheduleAnalyzer = scheduleAnalyzer;
         }
 
+        // Список всех групп
         [HttpGet("all-groups")]
         public async Task<ActionResult<IEnumerable<GroupViewModel>>> GetAllGroups()
         {
