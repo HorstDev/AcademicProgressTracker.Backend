@@ -19,6 +19,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
             _authService = authService;
         }
 
+        /// <summary>
+        /// Регистрация пользователя
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost("register")]
         public async Task<ActionResult> RegisterAsync([FromBody] RegisterStudentViewModel request)
         {
@@ -27,6 +32,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return Created();
         }
 
+        /// <summary>
+        /// Обеспечивает вход пользователя в систему
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns>access-токен</returns>
         [HttpPost("login")]
         public async Task<ActionResult<string>> LoginAsync([FromBody] UserDto request)
         {
@@ -37,7 +47,10 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return Ok(accessToken);
         }
 
-        // Этот метод мы вызываем, когда клиент понял, что истекает или уже истек срок действия access токена и надо выдать новую пару access и refresh токена
+        /// <summary>
+        /// Обновление access и refresh токенов
+        /// </summary>
+        /// <returns>access-токен</returns>
         [HttpPost("refresh-token")]
         public async Task<ActionResult<string>> RefreshTokenAsync()
         {
@@ -49,7 +62,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return Ok(accessToken);
         }
 
-        // Получение access-токена на 48 часов
+        /// <summary>
+        /// Получение access-токена на 48 часов
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>access-токен</returns>
         [HttpGet("access-token-48-hours/{userId}")]
         public async Task<ActionResult<string>> GetAuthTokenFor48Hours(Guid userId)
         {
@@ -57,7 +74,12 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return Ok(authToken.Token);
         }
 
-        // Изменение данных аккаунта с помощью access токена
+        /// <summary>
+        /// Изменение данных аккаунта с помощью access токена
+        /// </summary>
+        /// <param name="accessToken"></param>
+        /// <param name="userDto"></param>
+        /// <returns></returns>
         [HttpPut("change-account-data/{accessToken}")]
         public async Task<ActionResult> ChangeAccountDataByAccessToken(string accessToken, UserDto userDto)
         {

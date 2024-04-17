@@ -14,6 +14,7 @@ using AcademicProgressTracker.Persistence.Repositories;
 using AcademicProgressTracker.Application.Common.Interfaces.Services;
 using AcademicProgressTracker.WebApi.Services;
 using AcademicProgressTracker.Application.Common.Schedule;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,8 +51,12 @@ builder.Services.AddSwaggerGen(options =>
         Name = "Authorization",
         Type = SecuritySchemeType.ApiKey
     });
-
     options.OperationFilter<SecurityRequirementsOperationFilter>();
+
+    // Подключаем xml для документирования api с помощью комментариев в виде xml
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    options.IncludeXmlComments(xmlPath);
 });
 
 // Add authentication with JWT

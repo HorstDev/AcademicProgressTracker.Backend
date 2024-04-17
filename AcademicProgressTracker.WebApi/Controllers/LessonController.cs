@@ -21,7 +21,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
             _dataContext = dataContext;
         }
 
-        // GET: api/<LessonController>
+        /// <summary>
+        /// Получение списка лабораторных работ у предмета
+        /// </summary>
+        /// <param name="subjectId"></param>
+        /// <returns></returns>
         [HttpGet("{subjectId}/lab-lessons")]
         public async Task<ActionResult<IEnumerable<LabLessonViewModel>>> GetLabLessons(Guid subjectId)
         {
@@ -40,7 +44,10 @@ namespace AcademicProgressTracker.WebApi.Controllers
                 .ToListAsync();
         }
 
-        // Возвращает занятия, которые идут в данный момент по расписанию у преподавателя
+        /// <summary>
+        /// Возвращает занятия, которые идут в данный момент по расписанию у преподавателя
+        /// </summary>
+        /// <returns>Занятия, которые идут в данный момент по расписанию у преподавателя</returns>
         [HttpGet("current-lessons"), Authorize(Roles = "Teacher")]
         public async Task<ActionResult<IEnumerable<LessonViewModel>>> GetCurrentLessons()
         {
@@ -74,7 +81,10 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return Ok(lessonsViewModels);
         }
 
-        // Возвращает статусы + занятия, которые проводятся преподавателем в данный момент
+        /// <summary>
+        /// Возвращает статусы + занятия, которые проводятся преподавателем в данный момент
+        /// </summary>
+        /// <returns>Статусы + занятия, которые проводятся преподавателем в данный момент</returns>
         [HttpGet("lessons-in-progress-user-statuses"), Authorize(Roles = "Teacher")]
         public async Task<ActionResult<IEnumerable<LessonUserStatusesViewModel>>> GetCurrentLessonsWithUserStatuses()
         {
@@ -129,6 +139,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return Ok(listOfLessonUserStatusesViewModel);
         }
 
+        /// <summary>
+        /// Получение списка занятий преподавателя, которые проводятся в дату
+        /// </summary>
+        /// <param name="date">Дата</param>
+        /// <returns>Список занятий преподавателя, которые проводятся в дату</returns>
         [HttpGet("lessons-in-date/{date}"), Authorize(Roles = "Teacher")]
         public async Task<ActionResult<IEnumerable<LessonViewModel>>> GetLessonsInDate(DateOnly date)
         {
@@ -163,6 +178,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return Ok(lessonsViewModels);
         }
 
+        /// <summary>
+        /// Начать занятия
+        /// </summary>
+        /// <param name="lessonsVm"></param>
+        /// <returns>Список начатых занятий</returns>
         [HttpPut("start-lessons"), Authorize(Roles = "Teacher")]
         public async Task<ActionResult<IEnumerable<LessonViewModel>>> StartLessons(IEnumerable<LessonViewModel> lessonsVm)
         {
@@ -237,6 +257,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return lessonsViewModel;
         }
 
+        /// <summary>
+        /// Остановить занятия
+        /// </summary>
+        /// <param name="lessonsVm"></param>
+        /// <returns>Список остановленных занятий</returns>
         [HttpPut("stop-lessons"), Authorize(Roles = "Teacher")]
         public async Task<ActionResult<IEnumerable<LessonViewModel>>> StopLessons(IEnumerable<LessonViewModel> lessonsVm)
         {
@@ -273,6 +298,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return lessonsViewModel;
         }
 
+        /// <summary>
+        /// Обновление статусов занятий
+        /// </summary>
+        /// <param name="lessonsUserStatusesVm"></param>
+        /// <returns></returns>
         [HttpPut("update-lesson-statuses"), Authorize(Roles = "Teacher")]
         public async Task<ActionResult<IEnumerable<LessonUserStatusViewModel>>> UpdateLessonUserStatuses(IEnumerable<LessonUserStatusViewModel> lessonsUserStatusesVm)
         {

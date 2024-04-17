@@ -21,6 +21,10 @@ namespace AcademicProgressTracker.WebApi.Controllers
             _dataContext = dataContext;
         }
 
+        /// <summary>
+        /// Получение списка преподаваемых дисциплин
+        /// </summary>
+        /// <returns>Преподаваемые дисциплины</returns>
         [HttpGet("taught-subjects"), Authorize(Roles = "Teacher")]
         public async Task<IEnumerable<SubjectViewModel>> GetTaughtSubjects()
         {

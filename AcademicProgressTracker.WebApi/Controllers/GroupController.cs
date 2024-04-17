@@ -30,7 +30,10 @@ namespace AcademicProgressTracker.WebApi.Controllers
             _scheduleAnalyzer = scheduleAnalyzer;
         }
 
-        // Список всех групп
+        /// <summary>
+        /// Получение списка всех групп
+        /// </summary>
+        /// <returns>Все группы</returns>
         [HttpGet("all-groups")]
         public async Task<ActionResult<IEnumerable<GroupViewModel>>> GetAllGroups()
         {
@@ -46,7 +49,12 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return allGroupsVm;
         }
 
-        // Загрузка новой группы
+        /// <summary>
+        /// Загрузка новой группы
+        /// </summary>
+        /// <param name="groupName"></param>
+        /// <param name="excelCurriculum">Учебный план</param>
+        /// <returns></returns>
         [HttpPost("{groupName}")]
         public async Task<ActionResult> Create(string groupName, IFormFile excelCurriculum)
         {
@@ -101,7 +109,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return BadRequest("Ошибка. Файл пуст.");
         }
 
-        // Загрузка зависимостей для группы (учителя и дисциплины)
+        /// <summary>
+        /// Загрузка зависимостей для группы (учителя и дисциплины)
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <returns></returns>
         [HttpPost("{groupId}/upload-dependencies")]
         public async Task<ActionResult> UploadTeachersAndSubjects(Guid groupId)
         {
@@ -239,7 +251,12 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return StatusCode(502, "Bad Gateway");
         }
 
-        // Загрузка зависимостей для группы (учителя и дисциплины) из файла
+        /// <summary>
+        /// Загрузка зависимостей для группы из json файла
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <param name="jsonFile"></param>
+        /// <returns></returns>
         [HttpPost("{groupId}/upload-dependencies-from-file")]
         public async Task<ActionResult> UploadTeachersAndSubjectsFromFile(Guid groupId, IFormFile jsonFile)
         {

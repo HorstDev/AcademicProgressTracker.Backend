@@ -21,7 +21,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
             _dataContext = dataContext;
         }
 
-        // Добавление ЛР
+        /// <summary>
+        /// Добавление лабораторной работы
+        /// </summary>
+        /// <param name="labWorkVm"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<ActionResult<LabWork>> Post(AddLabWorkViewModel labWorkVm)
         {
@@ -66,7 +70,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return Created();
         }
 
-        // Удаление ЛР
+        /// <summary>
+        /// Удаление лабораторной работы
+        /// </summary>
+        /// <param name="labWorkId"></param>
+        /// <returns></returns>
         [HttpDelete("{labWorkId}")]
         public async Task<ActionResult<LabWork>> Delete(Guid labWorkId)
         {
@@ -89,7 +97,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return Ok();
         }
 
-        // Получение списка лаб у определенного предмета
+        /// <summary>
+        /// Получение списка лабораторных работ у предмета
+        /// </summary>
+        /// <param name="subjectId"></param>
+        /// <returns></returns>
         [HttpGet("{subjectId}/get-many"), Authorize(Roles = "Teacher")]
         public async Task<ActionResult<IEnumerable<LabWorkViewModel>>> GetRange(Guid subjectId)
         {
@@ -131,6 +143,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return labWorksVm;
         }
 
+        /// <summary>
+        /// Получение списка студентов с статусами лабораторных работ
+        /// </summary>
+        /// <param name="subjectId"></param>
+        /// <returns></returns>
         [HttpGet("{subjectId}/students-labWork-statuses")]
         public async Task<ActionResult<IEnumerable<LabWorksWithWtudentViewModel>>> GetStudentsWithLabWorkStatuses(Guid subjectId)
         {
@@ -162,6 +179,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return Ok(studentsWithLabWorkStatuses);
         }
 
+        /// <summary>
+        /// Изменение состояние у статуса лабораторной работы
+        /// </summary>
+        /// <param name="labWorkUserStatusViewModel"></param>
+        /// <returns></returns>
         [HttpPut("lab-work-status-change-state")]
         public async Task<ActionResult<LabWorkUserStatusViewModel>> ChangeStateOfLabWorkStatus(LabWorkUserStatusViewModel labWorkUserStatusViewModel)
         {

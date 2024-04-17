@@ -16,6 +16,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
             _dataContext = dataContext;
         }
 
+        /// <summary>
+        /// Получение списка пользователей, имя или логин которых содержат подстроку
+        /// </summary>
+        /// <param name="substringName">Подстрока</param>
+        /// <returns>Список пользователей</returns>
         [HttpGet("{substringName}")]
         public async Task<IEnumerable<UserViewModel>> GetBySubstring(string substringName)
         {
