@@ -330,5 +330,56 @@ namespace AcademicProgressTracker.WebApi.Controllers
             }).ToList();
             return updatedLessonStatusesVm;
         }
+
+        /// <summary>
+        /// Возвращает статус занятия, которое проводится в данный момент у студента
+        /// </summary>
+        /// <returns>Статус занятия, которое проводится в данный момент у студента</returns>
+        [HttpGet("active-lesson-status"), Authorize(Roles = "Student")]
+        public async Task<ActionResult<LessonUserStatusViewModel>> GetActiveLessonStatus()
+        {
+            var studentId = new Guid(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            var activeLessonStatus = await _dataContext.LessonUserStatuses
+                .Where(lessonStatus => lessonStatus.UserId == studentId
+                && lessonStatus.Lesson!.RealStart < DateTime.Now && DateTime.Now < lessonStatus.Lesson.RealEnd)
+                .SingleOrDefaultAsync();
+
+            if (activeLessonStatus == null)
+                throw new BadHttpRequestException("В данный момент занятия не проводятся!");
+
+            return new LessonUserStatusViewModel
+            {
+                Id = activeLessonStatus.Id,
+                IsVisited = activeLessonStatus.IsVisited,
+                Score = activeLessonStatus.Score,
+            };
+        }
+
+        [HttpPut("check-lesson-status-visited/{lessonStatusId}"), Authorize(Roles = "Teacher")]
+        public async Task<ActionResult<LessonUserStatusViewModel>> CheckLessonStatusVisited(Guid lessonStatusId)
+        {
+            var lessonStatus = await _dataContext.LessonUserStatuses
+                .Include(x => x.Lesson)
+                .SingleAsync(x => x.Id == lessonStatusId);
+
+            // Проверяем ситуацию, когда студент сохранил картинку qr кода и решил отсканировать ее позже
+            if (lessonStatus.Lesson!.RealEnd < DateTime.Now)
+                throw new BadHttpRequestException("Занятие уже окончено! Отметиться нельзя");
+
+            if (lessonStatus.IsVisited)
+                throw new BadHttpRequestException("Вы уже отмечены, как посетивший занятие!");
+
+            // Обновляем статус занятия на посещенный
+            lessonStatus.IsVisited = true;
+            await _dataContext.SaveChangesAsync();
+
+            return new LessonUserStatusViewModel
+            {
+                Id = lessonStatus.Id,
+                IsVisited = lessonStatus.IsVisited,
+                Score = lessonStatus.Score,
+            };
+        }
     }
 }
