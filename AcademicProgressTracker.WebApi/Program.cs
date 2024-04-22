@@ -30,9 +30,11 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 // �����������
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IGroupRepository, GroupRepository>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 
 builder.Services.AddScoped<IScheduleAnalyzer, ScheduleAnalyzer>();
+builder.Services.AddHostedService<IncreaseCoursesService>();
 
 // Ignore cycles
 builder.Services.AddControllers().AddJsonOptions(options =>

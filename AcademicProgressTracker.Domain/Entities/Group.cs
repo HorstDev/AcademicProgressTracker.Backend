@@ -5,6 +5,7 @@
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;    // ДИПР
         public DateTime DateTimeOfUpdateDependenciesFromServer { get; set; }
+        public DateTime DateTimeOfLastIncreaseCourse { get; set; }
         public byte[] CurriculumExcelDocument { get; set; }
         public ICollection<Subject> Subjects { get; set; } = new List<Subject>();
 
@@ -46,7 +47,10 @@
         {
             var indexOfCourse = Name.IndexOf("_") + 1;
             int increasedCourse = Course() + 1;
-            Name.Insert(indexOfCourse, increasedCourse.ToString());
+            char[] charArray =  Name.ToCharArray();
+            charArray[indexOfCourse] = (char)('0' + increasedCourse);
+            Name = new string(charArray);
+            DateTimeOfLastIncreaseCourse = DateTime.Now;
         }
 
         // Возвращает true, если курс превысил допустимое значение для определенного типа обучения

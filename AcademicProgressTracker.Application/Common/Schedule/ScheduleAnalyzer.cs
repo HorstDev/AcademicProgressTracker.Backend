@@ -111,6 +111,7 @@ namespace AcademicProgressTracker.Application.Common.Schedule
             var currentDate = new DateOnly(semesterStart.Year, semesterStart.Month, semesterStart.Day);
             int currentWeekNumber = weekNumberSemesterStart;
             int currentLabLessonNumber = 0;
+            int countDays = 0; // показывает, сколько дней мы прошли в поиске нужных занятий
 
             while (labLessonCount > 0)
             {
@@ -137,6 +138,12 @@ namespace AcademicProgressTracker.Application.Common.Schedule
                     currentDate = currentDate.AddDays(1);
                     currentWeekNumber = currentWeekNumber == 1 ? 2 : 1;
                 }
+
+                countDays++;
+                // Если прошло 365 дней и мы все еще ищем нужные занятия, то был загружен неправильный документ с учебным планом
+                // или же было загружено несоответствующее расписание для группы
+                if (countDays >= 365)
+                    throw new InvalidDataException("Ошибка. Загружаемое расписание не соответствует учебному плану!");
             }
 
             return labLessonsResult;
@@ -149,6 +156,7 @@ namespace AcademicProgressTracker.Application.Common.Schedule
             var currentDate = new DateOnly(semesterStart.Year, semesterStart.Month, semesterStart.Day);
             int currentWeekNumber = weekNumberSemesterStart;
             int currentLectureLessonNumber = 0;
+            int countDays = 0; // показывает, сколько дней мы прошли в поиске нужных занятий
 
             while (lectureLessonCount > 0)
             {
@@ -175,6 +183,12 @@ namespace AcademicProgressTracker.Application.Common.Schedule
                     currentDate = currentDate.AddDays(1);
                     currentWeekNumber = currentWeekNumber == 1 ? 2 : 1;
                 }
+
+                countDays++;
+                // Если прошло 365 дней и мы все еще ищем нужные занятия, то был загружен неправильный документ с учебным планом
+                // или же было загружено несоответствующее расписание для группы
+                if (countDays >= 365)
+                    throw new InvalidDataException("Ошибка. Загружаемое расписание не соответствует учебному плану!");
             }
 
             return lectureLessonResult;
@@ -187,6 +201,7 @@ namespace AcademicProgressTracker.Application.Common.Schedule
             var currentDate = new DateOnly(semesterStart.Year, semesterStart.Month, semesterStart.Day);
             int currentWeekNumber = weekNumberSemesterStart;
             int currentPracticeLessonNumber = 0;
+            int countDays = 0; // показывает, сколько дней мы прошли в поиске нужных занятий
 
             while (practiceLessonCount > 0)
             {
@@ -213,6 +228,12 @@ namespace AcademicProgressTracker.Application.Common.Schedule
                     currentDate = currentDate.AddDays(1);
                     currentWeekNumber = currentWeekNumber == 1 ? 2 : 1;
                 }
+
+                countDays++;
+                // Если прошло 365 дней и мы все еще ищем нужные занятия, то был загружен неправильный документ с учебным планом
+                // или же было загружено несоответствующее расписание для группы
+                if (countDays >= 365)
+                    throw new InvalidDataException("Ошибка. Загружаемое расписание не соответствует учебному плану!");
             }
 
             return practiceLessonResult;
