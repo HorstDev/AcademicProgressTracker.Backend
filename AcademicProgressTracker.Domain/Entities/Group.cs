@@ -14,10 +14,56 @@
             CurriculumExcelDocument = curriculumExcelDocument;
         }
 
-        // Получение текущего семестра (считается с помощью года создания)
-        public int GetSemester()
+        // Тип обучения - магистратура
+        public bool TypeOfStudyIsMasterDegree()
         {
-            return 1;
+            var indexOfStudyType = Name.IndexOf("_") - 1;
+            return Name[indexOfStudyType] == 'М';
+        }
+
+        // Тип обучения - бакалавриат
+        public bool TypeOfStudyIsBachelorDegree()
+        {
+            var indexOfStudyType = Name.IndexOf("_") - 1;
+            return Name[indexOfStudyType] == 'Б';
+        }
+
+        // Тип обучения - специалитет
+        public bool TypeOfStudyIsSpecialtyDegree()
+        {
+            var indexOfStudyType = Name.IndexOf("_") - 1;
+            return Name[indexOfStudyType] == 'С';
+        }
+
+        public int Course()
+        {
+            var indexOfCourse = Name.IndexOf("_") + 1;
+            return int.Parse(Name[indexOfCourse].ToString());
+        }
+
+        // Увеличение курса
+        public void IncreaseCourse()
+        {
+            var indexOfCourse = Name.IndexOf("_") + 1;
+            int increasedCourse = Course() + 1;
+            Name.Insert(indexOfCourse, increasedCourse.ToString());
+        }
+
+        // Возвращает true, если курс превысил допустимое значение для определенного типа обучения
+        public bool StudyIsOver()
+        {
+            switch(Course())
+            {
+                // 3-го курса магистратуры не существует, поэтому обучение окончено, и так для всех остальных
+                case 3:
+                    return TypeOfStudyIsMasterDegree();
+                case 5:
+                    return TypeOfStudyIsBachelorDegree();
+                case 6:
+                    return TypeOfStudyIsSpecialtyDegree();
+                default:
+                    return false;
+            }
         }
     }
 }
