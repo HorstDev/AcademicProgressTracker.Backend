@@ -49,6 +49,24 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return allGroupsVm;
         }
 
+        [HttpGet("groups-by-substring/{substring}")]
+        public async Task<ActionResult<IEnumerable<GroupViewModel>>> GetFiveGroups(string substring)
+        {
+            var groups = await _dataContext.Groups
+                .Where(group => group.Name.Contains(substring))
+                .Take(5)
+                .ToListAsync();
+
+            var groupsVm = groups.Select(group => new GroupViewModel
+            {
+                Id = group.Id,
+                Name = group.Name,
+                DateTimeOfUpdateDependenciesFromServer = group.DateTimeOfUpdateDependenciesFromServer,
+            }).ToList();
+
+            return groupsVm;
+        }
+
         /// <summary>
         /// Загрузка новой группы
         /// </summary>

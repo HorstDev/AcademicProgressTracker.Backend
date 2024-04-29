@@ -1,6 +1,7 @@
 ﻿using AcademicProgressTracker.Application.Common.ViewModels.Subject;
 using AcademicProgressTracker.Domain.Entities;
 using AcademicProgressTracker.Persistence;
+using AcademicProgressTracker.Persistence.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +45,54 @@ namespace AcademicProgressTracker.WebApi.Controllers
                     }))
                 .OrderBy(subjectViewModel => subjectViewModel.GroupName)
                 .ToListAsync();
+        }
+
+        [HttpGet("subject-mappings"), Authorize(Roles = "Admin")]
+        public async Task<IEnumerable<SubjectMapping>> GetSubjectMappings()
+        {
+            return await _dataContext.SubjectMappings.ToListAsync();
+        }
+
+        [HttpPost("subject-mapping"), Authorize(Roles = "Admin")]
+        public async Task<ActionResult> AddSubjectMapping(SubjectMapping subjectMapping)
+        {
+            if (string.IsNullOrEmpty(subjectMapping.SubjectNameApiTable))
+                throw new BadHttpRequestException("Поле с названием предмета на сервере пустое!");
+            // Делаем поле для названия предмета в учебном плане null, если оно пустое
+            if (string.IsNullOrEmpty(subjectMapping.SubjectNameCurriculum))
+                subjectMapping.SubjectNameCurriculum = null;
+
+            await _dataContext.SubjectMappings.AddAsync(subjectMapping);
+            await _dataContext.SaveChangesAsync();
+
+            return Created();
+        }
+
+        [HttpPut("subject-mapping"), Authorize(Roles = "Admin")]
+        public async Task<ActionResult<SubjectMapping>> UpdateSubjectMapping(SubjectMapping subjectMapping)
+        {
+            if (string.IsNullOrEmpty(subjectMapping.SubjectNameApiTable))
+                throw new BadHttpRequestException("Поле с названием предмета на сервере пустое!");
+
+            // Делаем поле для названия предмета в учебном плане null, если оно пустое
+            if (string.IsNullOrEmpty(subjectMapping.SubjectNameCurriculum))
+                subjectMapping.SubjectNameCurriculum = null;
+
+            _dataContext.SubjectMappings.Update(subjectMapping);
+            await _dataContext.SaveChangesAsync();
+
+            return Ok(subjectMapping);
+        }
+
+        [HttpDelete("subject-mapping/{subjectMappingId}"), Authorize(Roles = "Admin")]
+        public async Task<ActionResult> DeleteSubjectMapping(Guid subjectMappingId)
+        {
+            var subjectMapping = await _dataContext.SubjectMappings.SingleAsync(x => x.Id == subjectMappingId);
+
+            _dataContext.SubjectMappings.Remove(subjectMapping);
+            await _dataContext.SaveChangesAsync();
+
+            return Ok();
         }
     }
 }
