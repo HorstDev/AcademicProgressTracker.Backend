@@ -3,8 +3,10 @@ using AcademicProgressTracker.Application.Common.DTOs;
 using AcademicProgressTracker.Application.Common.Interfaces.Services;
 using AcademicProgressTracker.Application.Common.ViewModels.Auth;
 using AcademicProgressTracker.Domain.Entities;
+using AcademicProgressTracker.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace AcademicProgressTracker.WebApi.Controllers
 {
@@ -13,10 +15,12 @@ namespace AcademicProgressTracker.WebApi.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly AcademicProgressDataContext _dataContext;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, AcademicProgressDataContext dataContext)
         {
             _authService = authService;
+            _dataContext = dataContext;
         }
 
         /// <summary>
@@ -84,6 +88,18 @@ namespace AcademicProgressTracker.WebApi.Controllers
         public async Task<ActionResult> ChangeAccountDataByAccessToken(string accessToken, UserDto userDto)
         {
             await _authService.ChangeAccountDataByAccessToken(accessToken, userDto);
+            return Ok();
+        }
+
+        [HttpDelete("{userId}")]
+        public async Task<ActionResult> DeleteUserById(Guid userId)
+        {
+            var user = await _dataContext.Users.SingleOrDefaultAsync(user => user.Id == userId);
+            if (user == null)
+                throw new BadHttpRequestException("Студент с таким id не найден!");
+
+            _dataContext.Remove(user);
+            await _dataContext.SaveChangesAsync();
             return Ok();
         }
 

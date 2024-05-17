@@ -67,6 +67,22 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return groupsVm;
         }
 
+        [HttpGet("{groupId}")]
+        public async Task<ActionResult<GroupViewModel>> GetGroup(Guid groupId)
+        {
+            var group = await _dataContext.Groups
+                .SingleAsync(group => group.Id == groupId);
+
+            var groupVm = new GroupViewModel
+            {
+                Id = group.Id,
+                Name = group.Name,
+                DateTimeOfUpdateDependenciesFromServer = group.DateTimeOfUpdateDependenciesFromServer,
+            };
+
+            return groupVm;
+        }
+
         /// <summary>
         /// Загрузка новой группы
         /// </summary>

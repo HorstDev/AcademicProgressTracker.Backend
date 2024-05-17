@@ -1,4 +1,7 @@
-﻿using AcademicProgressTracker.Application.Common.ViewModels.User;
+﻿using AcademicProgressTracker.Application.Common.Interfaces.Services;
+using AcademicProgressTracker.Application.Common.ViewModels.Subject;
+using AcademicProgressTracker.Application.Common.ViewModels.User;
+using AcademicProgressTracker.Domain.Entities;
 using AcademicProgressTracker.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
@@ -12,10 +15,12 @@ namespace AcademicProgressTracker.WebApi.Controllers
     public class UserController : ControllerBase
     {
         private readonly AcademicProgressDataContext _dataContext;
+        private readonly IAuthService _authService;
 
-        public UserController(AcademicProgressDataContext dataContext)
+        public UserController(AcademicProgressDataContext dataContext, IAuthService authServise)
         {
             _dataContext = dataContext;
+            _authService = authServise;
         }
 
         /// <summary>
@@ -111,6 +116,176 @@ namespace AcademicProgressTracker.WebApi.Controllers
             };
 
             return userVm;
+        }
+
+        [HttpGet("teachers-by-substring/{substring}")]
+        public async Task<IEnumerable<UserProfileViewModel>> GetFiveTeachersBySubstring(string substring)
+        {
+            var teachers = await _dataContext.TeacherProfiles
+                .Where(profile => profile.Name.ToLower().Contains(substring.ToLower()))
+                .Take(5)
+                .ToListAsync();
+
+            var userProfiles = teachers.Select(teacher => new UserProfileViewModel
+            {
+                Id = teacher.UserId,
+                Name = teacher.Name,
+            });
+
+            return userProfiles;
+        }
+
+        [HttpGet("students/{groupId}")]
+        public async Task<IEnumerable<UserProfileViewModel>> GetStudentsByGroup(Guid groupId)
+        {
+            // Выбираем всех студентов у группы
+            var studentProfiles = await _dataContext.UserGroup
+                .Where(x => x.GroupId == groupId)
+                .Select(x => x.User!.Profiles.OfType<StudentProfile>().FirstOrDefault())
+                .ToListAsync();
+
+            var studentProfilesVm = new List<UserProfileViewModel>();
+            foreach(var studentProfile in studentProfiles)
+            {
+                if (studentProfile != null)
+                {
+                    studentProfilesVm.Add(new UserProfileViewModel
+                    {
+                        Id = studentProfile.UserId,
+                        Name = studentProfile.Name,
+                    });
+                }
+            }
+
+            return studentProfilesVm.OrderBy(profile => profile.Name);
+        }
+
+        [HttpGet("curator/{groupId}")]
+        public async Task<ActionResult<UserProfileViewModel>> GetCuratorByGroup(Guid groupId)
+        {
+            // Выбираем куратора группы
+            var curatorProfile = await _dataContext.UserGroup
+                .Where(x => x.GroupId == groupId && x.Role!.Name == "Teacher")
+                .Select(x => x.User!.Profiles.OfType<TeacherProfile>().FirstOrDefault())
+                .SingleOrDefaultAsync();
+
+            var curatorProfileVm = new UserProfileViewModel();
+            if (curatorProfile != null)
+            {
+                curatorProfileVm.Id = curatorProfile.UserId;
+                curatorProfileVm.Name = curatorProfile.Name;
+                return Ok(curatorProfileVm);
+            }
+
+            return NotFound("Куратор не найден!");
+        }
+
+        [HttpPost("add-curator/{userId}/{groupId}")]
+        public async Task<ActionResult> AddCuratorToGroup(Guid userId, Guid groupId)
+        {
+            // Находим преподавателя вместе с ролью, чтобы проверить роль на следующих шагах
+            var teacher = await _dataContext.Users
+                .Include(user => user.Roles)
+                .SingleAsync(user => user.Id == userId);
+            
+            // Если у пользователя нет роли преподавателя
+            if (!teacher.Roles.Any(role => role.Name == "Teacher"))
+                throw new BadHttpRequestException("Пользователь не является преподавателем! Сделать куратором невозможно");
+
+            // Выбираем существующего куратора группы.
+            var currentCurator = await _dataContext.UserGroup
+                .Where(x => x.GroupId == groupId && x.Role!.Name == "Teacher")
+                .SingleOrDefaultAsync();
+
+            // На случай, если он имеется, удаляем его (т.к. куратор может быть только один)
+            if (currentCurator != null)
+                _dataContext.UserGroup.Remove(currentCurator);
+
+            // Добавляем нового куратора группы
+            await _dataContext.UserGroup.AddAsync(new Persistence.Models.UserGroup
+            {
+                User = teacher,
+                GroupId = groupId,
+                Role = teacher.Roles.Single(role => role.Name == "Teacher"),
+            });
+
+            await _dataContext.SaveChangesAsync();
+
+            return Created();
+        }
+
+        /// <summary>
+        /// Добавление студента в группу
+        /// При добавлении студента в группу добавляются и статусы к лабораторным работам, которые уже существуют в этом семестре
+        /// </summary>
+        /// <param name="studentName"></param>
+        /// <param name="groupId"></param>
+        /// <returns></returns>
+        [HttpPost("add-student/{studentName}/{groupId}")]
+        public async Task<ActionResult<UserProfileViewModel>> AddStudent(string studentName, Guid groupId)
+        {
+            User studentUser = await _authService.GetStudentUserWithRandomLoginAndPasswordAsync(studentName);
+
+            // Извлекаем все лабораторные работы для всех предметов в этой группе в текущем семестре
+            var labWorks = await _dataContext.Groups
+            .SelectMany(group => group.Subjects
+                .Where(subject => subject.Semester == group.Subjects.Max(x => x.Semester)))
+            .SelectMany(subject => subject.Lessons.OfType<LabLesson>())
+            .Select(labLesson => labLesson.LabWork)
+            .Where(labWork => labWork != null)
+            .Distinct()
+            .ToListAsync();
+
+            // Извлекаем все занятия для всех предметов в этой группе в текущем семестре
+            var startedLessons = await _dataContext.Groups
+            .SelectMany(group => group.Subjects
+                .Where(subject => subject.Semester == group.Subjects.Max(x => x.Semester)))
+            .SelectMany(subject => subject.Lessons)
+            .Where(lesson => lesson.IsStarted)
+            .ToListAsync();
+
+            // Добавляем аккаунт студента
+            Guid studentId = new Guid();
+            studentUser.Id = studentId;
+            await _dataContext.Users.AddAsync(studentUser);
+
+            // Добавляем студента к группе
+            await _dataContext.UserGroup.AddAsync(new Persistence.Models.UserGroup
+            {
+                GroupId = groupId,
+                User = studentUser,
+                Role = studentUser.Roles.First(),
+            });
+
+            // Для каждой ЛР добавляем статус для нового студента
+            foreach (var labWork in labWorks)
+            {
+                await _dataContext.LabWorkUserStatuses.AddAsync(new LabWorkUserStatus
+                {
+                    User = studentUser,
+                    LabWork = labWork,
+                    IsDone = false,
+                });
+            }
+
+            // Для каждого проведенного занятия добавляем статус, что добавляемый студент эти занятия не посещал
+            foreach (var startedLesson in startedLessons)
+            {
+                await _dataContext.LessonUserStatuses.AddAsync(new LessonUserStatus
+                {
+                    User = studentUser,
+                    Lesson = startedLesson,
+                    IsVisited = false,
+                });
+            }
+
+            await _dataContext.SaveChangesAsync();
+
+            return new UserProfileViewModel
+            {
+                Id = studentId,
+                Name = studentUser.Profiles.First().Name,
+            };
         }
     }
 }

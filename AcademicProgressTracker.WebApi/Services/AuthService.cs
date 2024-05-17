@@ -120,6 +120,8 @@ namespace AcademicProgressTracker.WebApi.Services
             var user = new User(name, passwordHash, passwordSalt);
             user.Roles.Add(studentRole);
 
+            user.Profiles.Add(new StudentProfile { User = user, Name = user.Email });
+
             return user;
         }
 

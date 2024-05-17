@@ -47,6 +47,21 @@ namespace AcademicProgressTracker.WebApi.Controllers
                 .ToListAsync();
         }
 
+        [HttpGet("subjects/{groupId}")]
+        public async Task<IEnumerable<SubjectViewModel>> GetSubjectsByGroupId(Guid groupId)
+        {
+            var subjects = await _dataContext.Groups
+            .SelectMany(group => group.Subjects
+                .Where(subject => subject.Semester == group.Subjects.Max(x => x.Semester)))
+                .ToListAsync();
+
+            return subjects.Select(subject => new SubjectViewModel
+            {
+                Id = subject.Id,
+                Name = subject.Name,
+            });
+        }
+
         [HttpGet("subject-mappings"), Authorize(Roles = "Admin")]
         public async Task<IEnumerable<SubjectMapping>> GetSubjectMappings()
         {
