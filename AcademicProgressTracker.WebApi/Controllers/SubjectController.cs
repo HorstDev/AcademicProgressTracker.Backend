@@ -52,7 +52,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
         {
             var subjects = await _dataContext.Groups
             .SelectMany(group => group.Subjects
-                .Where(subject => subject.Semester == group.Subjects.Max(x => x.Semester)))
+                .Where(subject => subject.Semester == group.Subjects.Max(x => x.Semester) && subject.GroupId == groupId))
                 .ToListAsync();
 
             return subjects.Select(subject => new SubjectViewModel

@@ -140,7 +140,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
         {
             // Выбираем всех студентов у группы
             var studentProfiles = await _dataContext.UserGroup
-                .Where(x => x.GroupId == groupId)
+                .Where(x => x.GroupId == groupId && x.Role!.Name == "Student")
                 .Select(x => x.User!.Profiles.OfType<StudentProfile>().FirstOrDefault())
                 .ToListAsync();
 

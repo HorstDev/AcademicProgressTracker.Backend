@@ -88,9 +88,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
         [HttpGet("lessons-in-progress-user-statuses"), Authorize(Roles = "Teacher")]
         public async Task<ActionResult<IEnumerable<LessonUserStatusesViewModel>>> GetCurrentLessonsWithUserStatuses()
         {
+            var teacherId = new Guid(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
             // Извлекаем занятия, которые начаты преподавателем и проводятся в данный момент
             var lessons = await _dataContext.Lessons
-                .Where(lesson => lesson.RealStart <= DateTime.Now && lesson.RealEnd >= DateTime.Now)
+                .Where(lesson => lesson.RealStart <= DateTime.Now && lesson.RealEnd >= DateTime.Now 
+                    && lesson.Subject!.Users.Any(x => x.Id == teacherId))
                 .Include(lesson => lesson.Subject)
                 .Include(lesson => lesson.Subject!.Group)
                 .Include(lesson => lesson.UserStatuses)

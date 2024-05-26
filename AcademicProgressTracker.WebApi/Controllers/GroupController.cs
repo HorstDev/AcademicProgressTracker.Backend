@@ -3,11 +3,14 @@ using AcademicProgressTracker.Application.Common.Interfaces;
 using AcademicProgressTracker.Application.Common.Interfaces.Services;
 using AcademicProgressTracker.Application.Common.Schedule;
 using AcademicProgressTracker.Application.Common.ViewModels.Group;
+using AcademicProgressTracker.Application.Common.ViewModels.Report;
 using AcademicProgressTracker.Application.Curriculum;
 using AcademicProgressTracker.Domain.Entities;
 using AcademicProgressTracker.Persistence;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -64,6 +67,21 @@ namespace AcademicProgressTracker.WebApi.Controllers
                 DateTimeOfUpdateDependenciesFromServer = group.DateTimeOfUpdateDependenciesFromServer,
             }).ToList();
 
+            return groupsVm;
+        }
+
+        [HttpGet("groups-by-substring-from-api-table/{substring}")]
+        public async Task<ActionResult<IEnumerable<GroupViewModel>>> GetFiveGroupsFromApiTable(string substring)
+        {
+            var groupsVm = new List<GroupViewModel>();
+            var response = await _httpClient.GetAsync($"https://apitable.astu.org/search/find?q=${substring}");
+            if (response.IsSuccessStatusCode)
+                groupsVm = await response.Content.ReadFromJsonAsync<List<GroupViewModel>>();
+            else
+                return StatusCode((int)response.StatusCode, "Сервер АГТУ недоступен");
+
+            if (groupsVm == null)
+                return StatusCode((int)response.StatusCode, "Bad Gateway");
             return groupsVm;
         }
 
@@ -187,7 +205,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
                     .ToListAsync();
 
                 if (subjectsMappings.Count < subjectsInApiTable.Count)
-                    return BadRequest($"Ошибка: в таблице 'ПредметСервер - ПредметУчебныйПлан' не хватает предметов для группы {group.Name}");
+                    throw new BadHttpRequestException($"Ошибка: в таблице 'ПредметСервер - ПредметУчебныйПлан' не хватает предметов для группы {group.Name}");
 
                 var subjectsInCurriculum = subjectsMappings
                     .Select(x => x.SubjectNameCurriculum)
@@ -205,7 +223,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
                 // Проверяем, есть ли с этим общим семестром дисциплины у группы, если есть, то они уже загружены
                 var testSubject = await _dataContext.Subjects.FirstOrDefaultAsync(x => x.GroupId == group.Id && x.Semester == commonSemester);
                 if (testSubject != null)
-                    return BadRequest($"У группы {group.Name} уже загружены дисциплины за {commonSemester} семестр!");
+                    throw new BadHttpRequestException($"У группы {group.Name} уже загружены дисциплины за {commonSemester} семестр!");
 
                 // 1. Добавляем предметы и их лабораторные занятия и статусы к ним для каждого студента (если предмета нет в учебном плане, то и лабораторных занятий нет)
                 var subjectsToDatabase = new List<Subject>();
@@ -426,6 +444,41 @@ namespace AcademicProgressTracker.WebApi.Controllers
             }
 
             return StatusCode(502, "Bad Gateway");
+        }
+        
+        /// <summary>
+        /// Получение курируемой группы
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="BadHttpRequestException"></exception>
+        [HttpGet("supervised-groups"), Authorize(Roles = "Teacher")]
+        public async Task<ActionResult<List<GroupViewModel>>> GetSupervisedGroup()
+        {
+            var teacherId = new Guid(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            // Получаем группы, которые курируются преподавателем
+            var groups = await _dataContext.UserGroup
+                .Where(x => x.UserId == teacherId && x.Role!.Name == "Teacher")
+                .Select(x => x.Group)
+                .ToListAsync();
+
+            if (groups == null || !groups.Any())
+                throw new BadHttpRequestException("Курируемые группы отсутствуют!");
+
+            List<GroupViewModel> supervisedGroups = new List<GroupViewModel>();
+            foreach(var group in groups)
+            {
+                if (group == null) continue;
+
+                supervisedGroups.Add(new GroupViewModel
+                {
+                    Id = group.Id,
+                    Name = group.Name,
+                    DateTimeOfUpdateDependenciesFromServer = group.DateTimeOfUpdateDependenciesFromServer
+                });
+            }
+
+            return supervisedGroups;
         }
     }
 }
