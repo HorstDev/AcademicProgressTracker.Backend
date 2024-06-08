@@ -1,5 +1,6 @@
 ﻿using AcademicProgressTracker.Application.Common.DTOs;
 using AcademicProgressTracker.Application.Common.Interfaces;
+using AcademicProgressTracker.Application.Common.Interfaces.Repositories;
 using AcademicProgressTracker.Application.Common.Interfaces.Services;
 using AcademicProgressTracker.Application.Common.Schedule;
 using AcademicProgressTracker.Application.Common.ViewModels.Group;
@@ -24,13 +25,16 @@ namespace AcademicProgressTracker.WebApi.Controllers
         private readonly HttpClient _httpClient;
         private readonly IAuthService _authService;     // нужен для регистрации новых преподавателей и студентов (в будущем убрать в другой сервис)
         private readonly IScheduleAnalyzer _scheduleAnalyzer;
+        private readonly IGroupRepository _groupRepository;
 
-        public GroupController(AcademicProgressDataContext dataContext, HttpClient httpClient, IAuthService authService, IScheduleAnalyzer scheduleAnalyzer)
+        public GroupController(AcademicProgressDataContext dataContext, HttpClient httpClient, 
+            IAuthService authService, IScheduleAnalyzer scheduleAnalyzer, IGroupRepository groupRepository)
         {
             _dataContext = dataContext;
             _httpClient = httpClient;
             _authService = authService;
             _scheduleAnalyzer = scheduleAnalyzer;
+            _groupRepository = groupRepository;
         }
 
         /// <summary>
@@ -101,6 +105,17 @@ namespace AcademicProgressTracker.WebApi.Controllers
             return groupVm;
         }
 
+        [HttpDelete("{groupId}")]
+        public async Task<ActionResult> DeleteGroup(Guid groupId)
+        {
+            var group = await _dataContext.Groups
+                .SingleAsync(group => group.Id == groupId);
+
+            await _groupRepository.DeleteAsync(group);
+
+            return Ok();
+        }
+
         /// <summary>
         /// Загрузка новой группы
         /// </summary>
@@ -142,7 +157,6 @@ namespace AcademicProgressTracker.WebApi.Controllers
 
                         foreach (var user in users)
                         {
-                            user.Profiles.Add(new StudentProfile { User = user, Name = user.Email });
                             await _dataContext.UserGroup.AddAsync(new Persistence.Models.UserGroup { User = user, Role = user.Roles.First(), Group = group });
                         }
 
@@ -165,9 +179,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
         /// Загрузка зависимостей для группы (учителя и дисциплины)
         /// </summary>
         /// <param name="groupId"></param>
+        /// <param name="semesterStart"></param>
         /// <returns></returns>
-        [HttpPost("{groupId}/upload-dependencies")]
-        public async Task<ActionResult> UploadTeachersAndSubjects(Guid groupId)
+        /// <exception cref="BadHttpRequestException"></exception>
+        [HttpPost("{groupId}/upload-dependencies/{semesterStart}")]
+        public async Task<ActionResult> UploadTeachersAndSubjects(Guid groupId, DateOnly semesterStart)
         {
             GroupWithLessonsDTO? groupLessonsDTO;
             var group = await _dataContext.Groups.SingleAsync(x => x.Id == groupId);
@@ -243,7 +259,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
                         int lectureLessonCount = curriculumAnalyzer.GetNumberOfLectureLesson(subjectCurriculum, commonSemester);
                         int practiceLessonCount = curriculumAnalyzer.GetNumberOfPracticeLesson(subjectCurriculum, commonSemester);
 
-                        lessons = _scheduleAnalyzer.GetLessonsOfSubjectFromLessonsDTO(new DateOnly(2024, 2, 16), groupLessonsDTO.Lessons, subjectApiTable,
+                        lessons = _scheduleAnalyzer.GetLessonsOfSubjectFromLessonsDTO(semesterStart, groupLessonsDTO.Lessons, subjectApiTable,
                             labLessonCount, lectureLessonCount, practiceLessonCount);
                     }
 
@@ -284,7 +300,6 @@ namespace AcademicProgressTracker.WebApi.Controllers
                     else    // иначе создаем новый аккаунт для преподавателя и профиль преподавателя
                     {
                         var teacherUser = await _authService.GetTeacherUserWithRandomLoginAndPasswordAsync(teacherName);
-                        teacherUser.Profiles.Add(new TeacherProfile { User = teacherUser, Name = teacherName });
                         foreach (var subject in subjectsForThisTeacherInDatabase)
                         {
                             teacherUser.Subjects.Add(subject);
@@ -307,12 +322,15 @@ namespace AcademicProgressTracker.WebApi.Controllers
         /// Загрузка зависимостей для группы из json файла
         /// </summary>
         /// <param name="groupId"></param>
+        /// <param name="semesterStart"></param>
         /// <param name="jsonFile"></param>
         /// <returns></returns>
-        [HttpPost("{groupId}/upload-dependencies-from-file")]
-        public async Task<ActionResult> UploadTeachersAndSubjectsFromFile(Guid groupId, IFormFile jsonFile)
+        /// <exception cref="BadHttpRequestException"></exception>
+        [HttpPost("{groupId}/upload-dependencies-from-file/{semesterStart}")]
+        public async Task<ActionResult> UploadTeachersAndSubjectsFromFile(Guid groupId, DateOnly semesterStart, IFormFile jsonFile)
         {
             var group = await _dataContext.Groups.SingleAsync(x => x.Id == groupId);
+            group.DateTimeOfUpdateDependenciesFromServer = DateTime.Now;
             var groupLessonsDTO = new GroupWithLessonsDTO();
 
             string jsonString;
@@ -361,7 +379,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
                     .ToListAsync();
 
                 if (subjectsMappings.Count < subjectsInApiTable.Count)
-                    return BadRequest($"Ошибка: в таблице 'ПредметСервер - ПредметУчебныйПлан' не хватает предметов для группы {group.Name}");
+                    throw new BadHttpRequestException($"Ошибка: в таблице 'ПредметСервер - ПредметУчебныйПлан' не хватает предметов для группы {group.Name}");
 
                 var subjectsInCurriculum = subjectsMappings
                     .Select(x => x.SubjectNameCurriculum)
@@ -379,16 +397,29 @@ namespace AcademicProgressTracker.WebApi.Controllers
                 // Проверяем, есть ли с этим общим семестром дисциплины у группы, если есть, то они уже загружены
                 var testSubject = await _dataContext.Subjects.FirstOrDefaultAsync(x => x.GroupId == group.Id && x.Semester == commonSemester);
                 if (testSubject != null)
-                    return BadRequest($"У группы {group.Name} уже загружены дисциплины за {commonSemester} семестр!");
+                    throw new BadHttpRequestException($"У группы {group.Name} уже загружены дисциплины за {commonSemester} семестр!");
 
-                // 1. Добавляем предметы и их лабораторные занятия (если предмета нет в учебном плане, то и лабораторных занятий нет)
+                // 1. Добавляем предметы и их лабораторные занятия и статусы к ним для каждого студента (если предмета нет в учебном плане, то и лабораторных занятий нет)
                 var subjectsToDatabase = new List<Subject>();
+                var studentsOfGroup = await _dataContext.UserGroup.Where(x => x.GroupId == groupId && x.Role!.Name == "Student")
+                    .Select(x => x.User)
+                    .ToListAsync();
+
                 foreach (var subjectApiTable in subjectsInApiTable)
                 {
-                    // Добавляем лабораторные занятия для предмета
-                    var labLessons = new List<Lesson>();
+                    // Добавляем занятия для предмета
+                    var lessons = new List<Lesson>();
                     var subjectCurriculum = subjectsMappings.Single(x => x.SubjectNameApiTable == subjectApiTable).SubjectNameCurriculum;
-                    int labLessonCount = subjectCurriculum == null ? 0 : curriculumAnalyzer.GetNumberOfLaboratoryLesson(subjectCurriculum, commonSemester);
+
+                    if (subjectCurriculum != null)
+                    {
+                        int labLessonCount = curriculumAnalyzer.GetNumberOfLaboratoryLesson(subjectCurriculum, commonSemester);
+                        int lectureLessonCount = curriculumAnalyzer.GetNumberOfLectureLesson(subjectCurriculum, commonSemester);
+                        int practiceLessonCount = curriculumAnalyzer.GetNumberOfPracticeLesson(subjectCurriculum, commonSemester);
+
+                        lessons = _scheduleAnalyzer.GetLessonsOfSubjectFromLessonsDTO(semesterStart, groupLessonsDTO.Lessons, subjectApiTable,
+                            labLessonCount, lectureLessonCount, practiceLessonCount);
+                    }
 
                     // Добавляем предметы
                     subjectsToDatabase.Add(new Subject
@@ -396,7 +427,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
                         Name = subjectApiTable,
                         Group = group,
                         Semester = commonSemester,
-                        Lessons = labLessons
+                        Lessons = lessons
                     });
                 }
                 // Добавляем предметы в БД
@@ -427,7 +458,6 @@ namespace AcademicProgressTracker.WebApi.Controllers
                     else    // иначе создаем новый аккаунт для преподавателя и профиль преподавателя
                     {
                         var teacherUser = await _authService.GetTeacherUserWithRandomLoginAndPasswordAsync(teacherName);
-                        teacherUser.Profiles.Add(new TeacherProfile { User = teacherUser, Name = teacherName });
                         foreach (var subject in subjectsForThisTeacherInDatabase)
                         {
                             teacherUser.Subjects.Add(subject);
@@ -440,7 +470,7 @@ namespace AcademicProgressTracker.WebApi.Controllers
                 await _dataContext.Users.AddRangeAsync(teacherUsersToDatabase);
                 // Сохраняем все изменения, которые были сделаны
                 await _dataContext.SaveChangesAsync();
-                return Ok("Успешно загружено в базу данных");
+                return Created();
             }
 
             return StatusCode(502, "Bad Gateway");

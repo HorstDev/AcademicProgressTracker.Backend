@@ -136,6 +136,8 @@ namespace AcademicProgressTracker.WebApi.Services
             var user = new User(name, passwordHash, passwordSalt);
             user.Roles.Add(teacherRole);
 
+            user.Profiles.Add(new TeacherProfile { User = user, Name = user.Email });
+
             return user;
         }
 

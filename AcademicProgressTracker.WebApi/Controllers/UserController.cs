@@ -32,7 +32,8 @@ namespace AcademicProgressTracker.WebApi.Controllers
         public async Task<IEnumerable<UserViewModel>> GetBySubstring(string substringName)
         {
             var users = await _dataContext.Users
-                .Where(user => user.Email.Contains(substringName) || user.Profiles.Any(profile => profile.Name.Contains(substringName))) 
+                .Where(user => user.Email.ToLower().Contains(substringName.ToLower()) 
+                    || user.Profiles.Any(profile => profile.Name.ToLower().Contains(substringName.ToLower()))) 
                 .Include(user => user.Profiles)
                 .Include(user => user.Roles)
                 .ToListAsync();
@@ -158,6 +159,30 @@ namespace AcademicProgressTracker.WebApi.Controllers
             }
 
             return studentProfilesVm.OrderBy(profile => profile.Name);
+        }
+
+        /// <summary>
+        /// Список преподавателей в группе
+        /// </summary>
+        /// <param name="groupId"></param>
+        /// <returns></returns>
+        [HttpGet("teachers/{groupId}")]
+        public async Task<IEnumerable<UserProfileViewModel>> GetTeachersByGroup(Guid groupId)
+        {
+            // Получаем преподавателей в группе
+            var teacherProfiles = await _dataContext.Groups
+                .SelectMany(group => group.Subjects
+                    .Where(subject => subject.Semester == group.Subjects.Max(x => x.Semester) && subject.GroupId == groupId))
+                .SelectMany(subject => subject.Users)
+                    .Select(user => user.Profiles.OfType<TeacherProfile>().FirstOrDefault())
+                .Distinct()
+                .ToListAsync();
+
+            return teacherProfiles.Select(profile => new UserProfileViewModel
+            {
+                Id = profile!.UserId,
+                Name = profile.Name
+            });
         }
 
         [HttpGet("curator/{groupId}")]
