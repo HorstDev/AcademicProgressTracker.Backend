@@ -1,8 +1,12 @@
-﻿using AcademicProgressTracker.Application.Common.ViewModels.Report;
+﻿using AcademicProgressTracker.Application.Common.ViewModels.LabWork;
+using AcademicProgressTracker.Application.Common.ViewModels.Report;
 using AcademicProgressTracker.Domain.Entities;
 using AcademicProgressTracker.Persistence;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -128,6 +132,98 @@ namespace AcademicProgressTracker.WebApi.Controllers
                 }
 
                 report.StudentReports.Add(studentReportVm);
+            }
+
+            return report;
+        }
+
+        [HttpGet("student-report"), Authorize(Roles = "Student")]
+        public async Task<ActionResult<List<StudentSubjectReportViewModel>>> GetReportForStudent()
+        {
+            var studentId = new Guid(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            // Извлекаем группу, в которой учится студент
+            var group = await _dataContext.UserGroup
+                .Where(x => x.UserId == studentId && x.Role!.Name == "Student")
+                .Select(x => x.Group)
+                .SingleAsync();
+
+            var subjects = await _dataContext.Groups
+            .SelectMany(gr => gr.Subjects
+                .Where(subject => subject.Semester == gr.Subjects.Max(x => x.Semester) && subject.GroupId == group!.Id))
+                .ToListAsync();
+
+            var subjectsWithLabWorks = new Dictionary<Subject, List<LabWork>>();
+            var subjectsWithLessonUserStatuses = new Dictionary<Subject, List<LessonUserStatus>>();
+
+            foreach (var subject in subjects)
+            {
+                // Лабораторные работы для дисциплины
+                var labWorks = await _dataContext.LabWorks
+                    .Where(labWork => labWork.Lessons.Any(x => x.SubjectId == subject.Id))
+                    .Include(labWork => labWork.Lessons)
+                    .Include(labWork => labWork.UserStatuses)
+                    .ToListAsync();
+
+                // Статусы занятий для дисциплины
+                var lessonUserStatuses = await _dataContext.LessonUserStatuses
+                    .Where(lessonUserStatus => lessonUserStatus.Lesson!.SubjectId == subject.Id)
+                    .Include(lessonUserStatus => lessonUserStatus.Lesson)
+                    .ToListAsync();
+
+                subjectsWithLabWorks.Add(subject, labWorks);
+                subjectsWithLessonUserStatuses.Add(subject, lessonUserStatuses);
+            }
+
+            var report = new List<StudentSubjectReportViewModel>();
+            foreach(var subject in subjects)
+            {
+                // Выбираем баллы для дисциплины (лабы)
+                decimal scoreForStudentOnSubjectOnLabWorks = subjectsWithLabWorks[subject]
+                    .Where(labWork => labWork.UserStatuses.Any(status => status.IsDone && status.UserId == studentId))
+                    .Sum(labWork => labWork.Score);
+
+                // Выбираем баллы для дисциплины (занятия)
+                decimal scoreForStudentOnSubjectOnLessons = subjectsWithLessonUserStatuses[subject]
+                    .Where(lessonStatus => lessonStatus.UserId == studentId)
+                    .Sum(lessonStatus => lessonStatus.Score);
+
+                // Устанавливаем все баллы
+                decimal fullScore = scoreForStudentOnSubjectOnLessons + scoreForStudentOnSubjectOnLabWorks;
+
+                // Считаем количество пропусков для дисциплины
+                int notVisitedLessonsCount = subjectsWithLessonUserStatuses[subject]
+                    .Where(lessonStatus => !lessonStatus.IsVisited && lessonStatus.UserId == studentId)
+                    .Select(lessonStatus => lessonStatus.LessonId)
+                    .Distinct()
+                    .Count();
+
+                int startedLessonsCount = subjectsWithLessonUserStatuses[subject]
+                        .Select(lessonStatus => lessonStatus.Lesson)
+                        .Distinct()
+                        .Count(lesson => lesson!.IsStarted);
+
+                var studentSubjectReportVm = new StudentSubjectReportViewModel();
+                studentSubjectReportVm.SubjectName = subject.Name;
+                studentSubjectReportVm.Score = fullScore;
+                studentSubjectReportVm.NotVisitedLessonCount = notVisitedLessonsCount;
+                studentSubjectReportVm.StartedLessonCount = startedLessonsCount;
+                studentSubjectReportVm.LabWorkUserStatuses = subjectsWithLabWorks[subject].Select(labWork => new LabWorkUserStatusViewModel
+                {
+                    Id = labWork.Id,
+                    Number = labWork.Number,
+                    IsDone = labWork.UserStatuses.Single(x => x.UserId == studentId).IsDone,
+                    Score = labWork.Score,
+                }).OrderBy(x => x.Number).ToList();
+                // Проходимся по лабам и выясняем, сколько лаб должно быть выполнено на текущий момент
+                foreach(var labWork in subjectsWithLabWorks[subject])
+                {
+                    // Вычисляем самое позднее занятие для лабы, и если его дата меньше текущей, то увеличиваем счетчик лаб, которые должны быть выполенены
+                    if (labWork.Lessons.Max(lesson => lesson.Start) < DateTime.Now)
+                        studentSubjectReportVm.LabWorkNumberShouldDone++;
+                }
+
+                report.Add(studentSubjectReportVm);
             }
 
             return report;
