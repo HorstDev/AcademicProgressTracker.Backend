@@ -134,39 +134,8 @@ namespace AcademicProgressTracker.WebApi.Controllers
                     var curriculumExcelDocumentBytes = memoryStream.ToArray();
                     var group = new Group(Uri.UnescapeDataString(groupName), curriculumExcelDocumentBytes);
 
-                    // ДОБАВЛЯЕМ СТУДЕНТОВ ДЛЯ ГРУППЫ ДИПРБ_41/1
-                    // ЭТО ГОВНОКОД! ЭТО ПРОСТО ДЛЯ ТЕСТА ДОБАВЛЯЮТСЯ СТУДЕНТЫ ДЛЯ ГРУППЫ НА СКОРУЮ РУКУ!! В БУДУЩЕМ СТУДЕНТОВ ДОБАВЛЯТЬ ВРУЧНУЮ ИЛИ С СЕРВЕРА!!
-                    if (group.Name == "ДИПРБ_41/1")
-                    {
-                        var users = new List<User>();
-                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Ермолаев Иван"));
-                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Усманов Азим"));
-                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Сафонов Артем"));
-                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Линев Роман"));
-                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Гогуев Керам"));
-                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Лиджигоряев Владимир"));
-                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Горст Сергей"));
-                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Матросов Данила"));
-                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Мартынов Илья"));
-                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Хамидов Иса"));
-                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Сангаджиев Очир"));
-                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Машков Михаил"));
-                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Бекбутаев Эдуард"));
-                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Сапрыкина Ольга"));
-                        users.Add(await _authService.GetStudentUserWithRandomLoginAndPasswordAsync("Морозова Мария"));
-
-                        foreach (var user in users)
-                        {
-                            await _dataContext.UserGroup.AddAsync(new Persistence.Models.UserGroup { User = user, Role = user.Roles.First(), Group = group });
-                        }
-
-                        await _dataContext.SaveChangesAsync();
-                    }
-                    else
-                    {
-                        await _dataContext.AddAsync(group);
-                        await _dataContext.SaveChangesAsync();
-                    }
+                    await _dataContext.AddAsync(group);
+                    await _dataContext.SaveChangesAsync();
                     // NEW GROUP URI. MAKE IT LATER
                     return CreatedAtAction("Create", new { id = group.Id }, group);
                 }

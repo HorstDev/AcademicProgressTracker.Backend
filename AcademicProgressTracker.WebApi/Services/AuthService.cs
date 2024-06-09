@@ -114,7 +114,7 @@ namespace AcademicProgressTracker.WebApi.Services
         // чтобы можно было заходить за студента во время разработки. ЭТО ИСПРАВИТЬ В БУДУЩЕМ ЧТОБЫ БЫЛИ РАНДОМНЫЕ ДАННЫЕ
         public async Task<User> GetStudentUserWithRandomLoginAndPasswordAsync(string name)
         {
-            _passwordHasher.CreateHash("12345", out byte[] passwordHash, out byte[] passwordSalt);
+            _passwordHasher.CreateHash(new Guid().ToString(), out byte[] passwordHash, out byte[] passwordSalt);
             Role studentRole = (await _roleRepository.GetByNameAsync("Student"))!;
 
             var user = new User(name, passwordHash, passwordSalt);
@@ -130,7 +130,7 @@ namespace AcademicProgressTracker.WebApi.Services
         // чтобы можно было заходить за преподавателя во время разработки. ЭТО ИСПРАВИТЬ В БУДУЩЕМ ЧТОБЫ БЫЛИ РАНДОМНЫЕ ДАННЫЕ
         public async Task<User> GetTeacherUserWithRandomLoginAndPasswordAsync(string name)
         {
-            _passwordHasher.CreateHash(name, out byte[] passwordHash, out byte[] passwordSalt);
+            _passwordHasher.CreateHash(new Guid().ToString(), out byte[] passwordHash, out byte[] passwordSalt);
             Role teacherRole = (await _roleRepository.GetByNameAsync("Teacher"))!;
 
             var user = new User(name, passwordHash, passwordSalt);
