@@ -148,9 +148,11 @@ namespace AcademicProgressTracker.WebApi.Controllers
                 .Select(x => x.Group)
                 .SingleAsync();
 
+            // Извлекаем дисциплины для группы (вместе с занятиями, так как надо будет проверять, есть ли у дисциплины лабораторные занятия)
             var subjects = await _dataContext.Groups
             .SelectMany(gr => gr.Subjects
                 .Where(subject => subject.Semester == gr.Subjects.Max(x => x.Semester) && subject.GroupId == group!.Id))
+                .Include(subject => subject.Lessons)
                 .ToListAsync();
 
             var subjectsWithLabWorks = new Dictionary<Subject, List<LabWork>>();
@@ -208,6 +210,8 @@ namespace AcademicProgressTracker.WebApi.Controllers
                 studentSubjectReportVm.Score = fullScore;
                 studentSubjectReportVm.NotVisitedLessonCount = notVisitedLessonsCount;
                 studentSubjectReportVm.StartedLessonCount = startedLessonsCount;
+                // Проверяем, есть ли у дисциплины лабораторные занятия. Если есть, то лабораторные работы должны существовать
+                studentSubjectReportVm.LabWorksShouldExist = subject.Lessons.Where(lesson => lesson is LabLesson).ToList().Any();
                 studentSubjectReportVm.LabWorkUserStatuses = subjectsWithLabWorks[subject].Select(labWork => new LabWorkUserStatusViewModel
                 {
                     Id = labWork.Id,

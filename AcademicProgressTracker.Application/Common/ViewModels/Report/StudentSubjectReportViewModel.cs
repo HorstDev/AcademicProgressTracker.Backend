@@ -10,5 +10,6 @@ namespace AcademicProgressTracker.Application.Common.ViewModels.Report
         public int StartedLessonCount { get; set; }
         public List<LabWorkUserStatusViewModel> LabWorkUserStatuses { get; set; } = new();
         public int LabWorkNumberShouldDone { get; set; }
+        public bool LabWorksShouldExist { get; set; }
     }
 }
