@@ -115,6 +115,12 @@ namespace AcademicProgressTracker.Application.Common.Schedule
 
             while (labLessonCount > 0)
             {
+                // Если воскресенье, изменяем текущую неделю на противоположную
+                if (currentDate.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    currentDate = currentDate.AddDays(1);
+                    currentWeekNumber = currentWeekNumber == 1 ? 2 : 1;
+                }
                 // Так как DayOfWeek (индекс) начинается с воскресенья, а в расписании АГТУ с понедельника, то убавляем на 1
                 int dayId = (currentWeekNumber == 1) ? (int)currentDate.DayOfWeek - 1 : (int)currentDate.DayOfWeek + 5;
                 foreach (var labLesson in labLessonsOfDays[dayId])
@@ -132,12 +138,6 @@ namespace AcademicProgressTracker.Application.Common.Schedule
                     }
                 }
                 currentDate = currentDate.AddDays(1);
-                // Если воскресенье, изменяем текущую неделю на противоположную
-                if (currentDate.DayOfWeek == DayOfWeek.Sunday)
-                {
-                    currentDate = currentDate.AddDays(1);
-                    currentWeekNumber = currentWeekNumber == 1 ? 2 : 1;
-                }
 
                 countDays++;
                 // Если прошло 365 дней и мы все еще ищем нужные занятия, то был загружен неправильный документ с учебным планом
@@ -160,6 +160,12 @@ namespace AcademicProgressTracker.Application.Common.Schedule
 
             while (lectureLessonCount > 0)
             {
+                // Если воскресенье, изменяем текущую неделю на противоположную
+                if (currentDate.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    currentDate = currentDate.AddDays(1);
+                    currentWeekNumber = currentWeekNumber == 1 ? 2 : 1;
+                }
                 // Так как DayOfWeek (индекс) начинается с воскресенья, а в расписании АГТУ с понедельника, то убавляем на 1
                 int dayId = (currentWeekNumber == 1) ? (int)currentDate.DayOfWeek - 1 : (int)currentDate.DayOfWeek + 5;
                 foreach (var lectureLesson in lectureLessonsOfDays[dayId])
@@ -177,12 +183,6 @@ namespace AcademicProgressTracker.Application.Common.Schedule
                     }
                 }
                 currentDate = currentDate.AddDays(1);
-                // Если воскресенье, изменяем текущую неделю на противоположную
-                if (currentDate.DayOfWeek == DayOfWeek.Sunday)
-                {
-                    currentDate = currentDate.AddDays(1);
-                    currentWeekNumber = currentWeekNumber == 1 ? 2 : 1;
-                }
 
                 countDays++;
                 // Если прошло 365 дней и мы все еще ищем нужные занятия, то был загружен неправильный документ с учебным планом
@@ -205,6 +205,12 @@ namespace AcademicProgressTracker.Application.Common.Schedule
 
             while (practiceLessonCount > 0)
             {
+                // Если воскресенье, изменяем текущую неделю на противоположную
+                if (currentDate.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    currentDate = currentDate.AddDays(1);
+                    currentWeekNumber = currentWeekNumber == 1 ? 2 : 1;
+                }
                 // Так как DayOfWeek (индекс) начинается с воскресенья, а в расписании АГТУ с понедельника, то убавляем на 1
                 int dayId = (currentWeekNumber == 1) ? (int)currentDate.DayOfWeek - 1 : (int)currentDate.DayOfWeek + 5;
                 foreach (var practiceLesson in practiceLessonsOfDays[dayId])
@@ -222,12 +228,6 @@ namespace AcademicProgressTracker.Application.Common.Schedule
                     }
                 }
                 currentDate = currentDate.AddDays(1);
-                // Если воскресенье, изменяем текущую неделю на противоположную
-                if (currentDate.DayOfWeek == DayOfWeek.Sunday)
-                {
-                    currentDate = currentDate.AddDays(1);
-                    currentWeekNumber = currentWeekNumber == 1 ? 2 : 1;
-                }
 
                 countDays++;
                 // Если прошло 365 дней и мы все еще ищем нужные занятия, то был загружен неправильный документ с учебным планом
