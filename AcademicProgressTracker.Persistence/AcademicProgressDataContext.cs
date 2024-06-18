@@ -55,6 +55,7 @@ namespace AcademicProgressTracker.Persistence
             // Применяем конфигурации
             modelBuilder.ApplyConfiguration(new UserConfiguration());
             modelBuilder.ApplyConfiguration(new UserGroupConfiguration(roles.Single(x => x.Name == "Student").Id));
+            modelBuilder.ApplyConfiguration(new GroupConfiguration());
             //modelBuilder.Entity<LabWorkStatus>()
             //    .Property(x => x.CurrentScore)
             //    .HasColumnType("numeric(18, 2)");
