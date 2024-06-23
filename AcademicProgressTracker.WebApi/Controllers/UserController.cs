@@ -253,21 +253,23 @@ namespace AcademicProgressTracker.WebApi.Controllers
 
             // Извлекаем все лабораторные работы для всех предметов в этой группе в текущем семестре
             var labWorks = await _dataContext.Groups
-            .SelectMany(group => group.Subjects
-                .Where(subject => subject.Semester == group.Subjects.Max(x => x.Semester)))
-            .SelectMany(subject => subject.Lessons.OfType<LabLesson>())
-            .Select(labLesson => labLesson.LabWork)
-            .Where(labWork => labWork != null)
-            .Distinct()
-            .ToListAsync();
+                .Where(group => group.Id == groupId)
+                .SelectMany(group => group.Subjects
+                    .Where(subject => subject.Semester == group.Subjects.Max(x => x.Semester)))
+                .SelectMany(subject => subject.Lessons.OfType<LabLesson>())
+                .Select(labLesson => labLesson.LabWork)
+                .Where(labWork => labWork != null)
+                .Distinct()
+                .ToListAsync();
 
             // Извлекаем все занятия для всех предметов в этой группе в текущем семестре
             var startedLessons = await _dataContext.Groups
-            .SelectMany(group => group.Subjects
-                .Where(subject => subject.Semester == group.Subjects.Max(x => x.Semester)))
-            .SelectMany(subject => subject.Lessons)
-            .Where(lesson => lesson.IsStarted)
-            .ToListAsync();
+                .Where(group => group.Id == groupId)
+                .SelectMany(group => group.Subjects
+                    .Where(subject => subject.Semester == group.Subjects.Max(x => x.Semester)))
+                .SelectMany(subject => subject.Lessons)
+                .Where(lesson => lesson.IsStarted)
+                .ToListAsync();
 
             // Добавляем аккаунт студента
             Guid studentId = new Guid();
