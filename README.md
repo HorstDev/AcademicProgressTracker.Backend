@@ -2,4 +2,4 @@
 
 Демонстрация работы приложения:
 
-[![Демонстрация работы приложения](https://pic.rutubelist.ru/video/2025-02-18/92/81/92815591fc5d4e5a1ddb431c38f03126.jpg)](https://rutube.ru/video/private/f92571b67b72a1746b3b0d8aac1e6518/?r=wd&p=i5Fm6s6YSC3z36w0F_uUZA)
+https://rutube.ru/video/private/f92571b67b72a1746b3b0d8aac1e6518/?r=wd&p=i5Fm6s6YSC3z36w0F_uUZA
